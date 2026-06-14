@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Imaging.Effects;
 using System.Text;
 using System.Windows.Forms;
+using System.Linq;
 using RetrostrikeDSKUI.Application;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -117,18 +118,20 @@ namespace RetrostrikeDSKUI.Forms
                 textbox_ImportFileName.Text = Utils.ShortenPath(_targetImportFileName, 60);
             comboBox_AssetType.BeginUpdate();
             comboBox_AssetType.Items.Clear();
-            int selIndex = 0;
             foreach (var curAsset in assetTypes)
             {
                 ComboBoxItemFileType item = new ComboBoxItemFileType(curAsset.Hash, Globals.HashResolver.ResolveHash(curAsset.Hash, RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes));
                 comboBox_AssetType.Items.Add(item);
-
-                //If the target import file type is known or can be detected, we should update the "selIndex"
-                //  with the correct corresponding index of that file type in the combobox.
-                //  i.e., "lua" should be detected and imported as "script", likewise with models and every other type.
-
             }
-            comboBox_AssetType.SelectedIndex = selIndex;
+            for (int i = 0; i < comboBox_AssetType.Items.Count; i++)
+            {
+                if (((ComboBoxItemFileType)comboBox_AssetType.Items[i]).Hash == _selectedFileType)
+                {
+                    comboBox_AssetType.SelectedIndex = i;
+                    break;
+                }
+            }
+            
             comboBox_AssetType.EndUpdate();
         }
         #endregion
@@ -138,7 +141,7 @@ namespace RetrostrikeDSKUI.Forms
         {
             //TODO: Work on importing files from here.
             //TODO: Work on Processing known file types for import/replace
-
+            //TODO: Work on better error messages (like adding "errors" to CanAddFile and AddFile)
             var targetFileName = System.IO.Path.GetFileNameWithoutExtension(this.TargetImportFile);
             var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
             if (Globals.ActiveDSK.CanAddFile(targetFileType, targetFileName))

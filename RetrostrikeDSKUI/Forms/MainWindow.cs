@@ -1,3 +1,8 @@
+using ReaLTaiizor.Controls;
+using ReaLTaiizor.Forms;
+using ReaLTaiizor.Manager;
+using RetroStrike.Pbl;
+using RetroStrike.Platform.XBox;
 using RetroStrike.Utils;
 using RetroStrike.VirtualDisk;
 using RetrostrikeDSKUI.Application;
@@ -17,12 +22,12 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace RetrostrikeDSKUI
 {
-    public partial class MainWindow : Form
+    public partial class MainWindow : MaterialForm
     {
         #region Fields
         public const string MainWindowTitle = "RetroStrike DSK Editor";
         string currentDSKFileName = string.Empty;
-        System.Windows.Forms.ListView mainListView;
+        MaterialListView mainListView;
         Color ImportedColor = Color.FromArgb(200, 240, 200);  // light green
         Color ReplacedColor = Color.FromArgb(200, 225, 245);  // light blue
         Color RemovedColor = Color.FromArgb(245, 205, 205);  // light red
@@ -54,7 +59,7 @@ namespace RetrostrikeDSKUI
         }
         #endregion
 
-        #region MainMenuStrip Context Menu Handlers
+        #region MainMenuStrip Menu Handlers
         private void mainMenuStrip_File_OpenDSK_Click(object sender, EventArgs e)
         {
             OpenFileDialog OFD = new OpenFileDialog();
@@ -91,7 +96,41 @@ namespace RetrostrikeDSKUI
 
             }
         }
+        private void mainMenuStrip_Debug_Test_Click(object sender, EventArgs e)
+        {
+            if (Globals.ActiveDSK != null)
+            {
+                uint textureHash = Hashing.MakeFNV1A("texture");
+                if (Globals.ActiveDSK.DoesTypeExist(textureHash))
+                {
+                    var textureFiles = Globals.ActiveDSK.Files[textureHash];
+                    foreach (var texture in textureFiles)
+                    {
+                        using (MemoryStream xMem = new MemoryStream())
+                        {
+                            Globals.ActiveDSK.CopyRFITo(texture, xMem);
+                            xMem.Seek(0, SeekOrigin.Begin);
 
+                            PblFile texPbl = new PblFile(xMem);
+                            texPbl.Read();
+                            var texChunk = texPbl.RootChunk.GetChildByID("tex_");
+                            if (texChunk != null)
+                            {
+                                RedTextureXBox xboxTexture = RedTextureXBox.CreateFromPBLChunk(texChunk);
+                                var isDXT = xboxTexture.FormatIsDXT((uint)xboxTexture.TextureFormat);
+                                var isSwizzled = xboxTexture.FormatIsSwizzled((uint)xboxTexture.TextureFormat);
+                                var redTexFormat = xboxTexture.RedTextureType;
+                                if (redTexFormat == RedTextureXBox.eRedTextureType.VOLUME)
+                                {
+
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
 
@@ -140,7 +179,31 @@ namespace RetrostrikeDSKUI
                 }
             }
         }
+        private void FileOptionsContextMenu_Extract_AsType_Click(object? sender, EventArgs e)
+        {
+            var filesToExtract = GetSelectedRFISFromListView();
+            if (filesToExtract.Length > 0)
+            {
+                if (filesToExtract.Length > 1)
+                    throw new NotImplementedException();
+                MemoryStream xMem = new MemoryStream();
+                Globals.ActiveDSK.CopyRFITo(filesToExtract[0], xMem);
+                xMem.Seek(0, SeekOrigin.Begin);
+                PblFile testPBL = new PblFile(xMem);
+                testPBL.Read();
 
+                PblChunk texChunk = testPBL.RootChunk.GetChildByID("tex_");
+                PblChunk nameChunk = texChunk.GetChildByID("NAME");
+                PblChunk bodyChunk = texChunk.GetChildByID("BODY");
+                string nameInChunk = nameChunk.GetDataAsString(Encoding.ASCII);
+
+                RedTextureXBox texture = RedTextureXBox.CreateFromPBLChunk(texChunk);
+                string errors = string.Empty;
+                Stream xOut = File.Open("testdata.dat", FileMode.OpenOrCreate);
+                texture.Exp(xOut, out errors);
+                xOut.Close();
+            }
+        }
         private void FileOptionsContextMenu_Replace_Click(object sender, EventArgs e)
         {
             var filesToReplace = GetSelectedRFISFromListView();
@@ -293,6 +356,10 @@ namespace RetrostrikeDSKUI
                 SetMainListViewActiveFileType((uint)e.TabPage.Tag);
             }
         }
+        private void MainTabControl_Selected(object? sender, TabControlEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
 
         #region Methods
         void SetWindowTitleExtension(string titleExtension)
@@ -302,34 +369,42 @@ namespace RetrostrikeDSKUI
         void CreateMainListView()
         {
             //Create the listview
-            mainListView = new System.Windows.Forms.ListView();
+            mainListView = new ReaLTaiizor.Controls.MaterialListView();
             mainListView.Name = "MainListView";
-            mainListView.View = View.Details;
             mainListView.Dock = DockStyle.Fill;
             mainListView.VirtualMode = true;
             mainListView.FullRowSelect = true;
             mainListView.MultiSelect = false;
+            mainListView.View = View.Details;
+
+            mainListView.Alignment = ListViewAlignment.Left;
             mainListView.ContextMenuStrip = FileOptionsContextMenu;
             mainListView.RetrieveVirtualItem += MainListView_RetrieveVirtualItem;
             mainListView.Resize += MainListView_Resize;
             //Create the columns
+
             ColumnHeader col_FileName = new ColumnHeader();
             col_FileName.Name = $"{mainListView.Name}_col_fileName";
             col_FileName.Text = "File Name";
             col_FileName.Width = 120;
+            col_FileName.TextAlign = HorizontalAlignment.Left;
 
             ColumnHeader col_FileType = new ColumnHeader();
             col_FileType.Name = $"{mainListView.Name}_col_fileType";
             col_FileType.Text = "File Type";
             col_FileType.Width = 120;
+            col_FileType.TextAlign = HorizontalAlignment.Left;
 
             ColumnHeader col_FileSize = new ColumnHeader();
             col_FileSize.Name = $"{mainListView.Name}_col_fileSize";
             col_FileSize.Text = "Size";
             col_FileSize.Width = 120;
+            col_FileSize.TextAlign = HorizontalAlignment.Left;
 
             //Add them
             mainListView.Columns.AddRange(col_FileName, col_FileType, col_FileSize);
+            mainListView.Update();
+
         }
 
         void OpenDSK(Stream xIn)
@@ -348,10 +423,12 @@ namespace RetrostrikeDSKUI
                 if (pair.Value.Count > 0)
                 {
                     var typeName = Globals.HashResolver.ResolveHash(pair.Key, HashNameResolver.eHashTypeSelector.All);
-                    TabPage newTab = new TabPage();
+                    System.Windows.Forms.TabPage newTab = new System.Windows.Forms.TabPage();
+
                     newTab.Name = $"mainTabControl_tab_{typeName}";
                     newTab.Text = typeName;
                     newTab.Tag = pair.Key;
+                    //newTab.BackColor = Color.FromArgb(255, 30, 30, 30);
                     mainTabControl.TabPages.Add(newTab);
                 }
             }
@@ -370,7 +447,7 @@ namespace RetrostrikeDSKUI
         {
             //This function sets the mainListView's parent to the tab who's fileTypeHash matches the parameter
             ValidateSelectedTabType();
-            foreach (TabPage tabPage in mainTabControl.TabPages)
+            foreach (System.Windows.Forms.TabPage tabPage in mainTabControl.TabPages)
             {
                 if (tabPage.Tag != null && ((uint)tabPage.Tag) == fileTypeHash)
                 {
@@ -446,7 +523,7 @@ namespace RetrostrikeDSKUI
             option_CancelImport.Name = "FileOptionsContextMenu_CancelImport";
             option_CancelImport.Text = "Cancel Import";
             option_CancelImport.Click += FileOptionsContextMenu_CancelImport_Click;
-            
+
             //Extraction & subitems
             ToolStripMenuItem option_Extract = new ToolStripMenuItem();
             option_Extract.Name = "FileOptionsContextMenu_Extract";
@@ -460,6 +537,7 @@ namespace RetrostrikeDSKUI
             ToolStripMenuItem option_Extract_AsType = new ToolStripMenuItem();
             option_Extract_AsType.Name = "FileOptionsContextMenu_Extract_AsType";
             option_Extract_AsType.Text = "As Type";
+            option_Extract_AsType.Click += FileOptionsContextMenu_Extract_AsType_Click;
 
             option_Extract.DropDownItems.Add(option_Extract_RawData);
             option_Extract.DropDownItems.Add(option_Extract_AsType);
@@ -539,6 +617,9 @@ namespace RetrostrikeDSKUI
             }
 #endif
         }
+
+
+
         DSKFile.RFI[] GetSelectedRFISFromListView()
         {
             if (Globals.ActiveDSK == null)
@@ -569,7 +650,7 @@ namespace RetrostrikeDSKUI
             //If we want to have more columns (info for individual types) later we should create a function to Create a ListViewItem for a certain type,
             //  and then another function to populate the listview item with info.
             if (Globals.ActiveDSK.Files.ContainsKey(GetSelectedViewFileType()))
-            { 
+            {
 
                 var targettedFiles = Globals.ActiveDSK.Files[GetSelectedViewFileType()];
                 if (e.ItemIndex < 0 || e.ItemIndex >= targettedFiles.Count)
@@ -642,6 +723,7 @@ namespace RetrostrikeDSKUI
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int msg, bool wParam, int lParam);
         #endregion
+
 
     }
 }
