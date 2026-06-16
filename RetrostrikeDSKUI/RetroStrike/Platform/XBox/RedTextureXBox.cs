@@ -96,6 +96,7 @@ namespace RetroStrike.Platform.XBox
                 //  look at pcRedTexture.cpp in the port for the structure
                 //
                 var rawData = GetTextureData();
+                int totalDataSize = rawData.Length;
                 bool isDXT = FormatIsDXT((uint)TextureFormat); //TODO: Check platform because DXT is only available for XBox files
                 bool isSwizzled = FormatIsSwizzled((uint)TextureFormat);
                 int bpp = FormatBPP((uint)TextureFormat);
@@ -166,6 +167,8 @@ namespace RetroStrike.Platform.XBox
                 {
                     //TODO:  Add cubemap.  It's pretty much the same as normal texture but with 6 faces that store the mipchain individually
                              //though none of the textures in streamed.dsk are CubeMap, so will have to really test it after I create the writer.
+                    
+                
                 }
             }
             errors = "Texture was not created from a PBLChunk.";

@@ -14,7 +14,7 @@ namespace RetrostrikeDSKUI.Application
             System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.SystemAware);
 #endif
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            System.Windows.Forms.Application.Run(new MainWindow());
+            System.Windows.Forms.Application.Run(new WindowMain());
         }
     }
 }

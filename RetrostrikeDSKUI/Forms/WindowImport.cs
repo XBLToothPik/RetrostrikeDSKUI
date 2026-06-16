@@ -19,7 +19,7 @@ using RetrostrikeDSKUI.Core;
 using static System.Net.Mime.MediaTypeNames;
 namespace RetrostrikeDSKUI.Forms
 {
-    public partial class ImportWindow : Form
+    public partial class WindowImport : Form
     {
         #region Classes
         class ComboBoxItemFileType
@@ -82,7 +82,7 @@ namespace RetrostrikeDSKUI.Forms
         #endregion
 
         #region CTORS
-        public ImportWindow(uint currentFileTypeSelected, string? targetFileName = null)
+        public WindowImport(uint currentFileTypeSelected, string? targetFileName = null)
         {
             InitializeComponent();
 

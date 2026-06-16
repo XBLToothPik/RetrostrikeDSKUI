@@ -1,6 +1,6 @@
 ﻿namespace RetrostrikeDSKUI
 {
-    partial class MainWindow
+    partial class WindowMain
     {
         /// <summary>
         ///  Required designer variable.

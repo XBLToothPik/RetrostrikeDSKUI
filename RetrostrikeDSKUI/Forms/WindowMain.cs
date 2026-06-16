@@ -8,6 +8,7 @@ using RetroStrike.VirtualDisk;
 using RetrostrikeDSKUI.Application;
 using RetrostrikeDSKUI.Core;
 using RetrostrikeDSKUI.Forms;
+using RetrostrikeDSKUI.Forms.ExportWindows;
 using RetrostrikeDSKUI.RetroStrike;
 using System.Diagnostics;
 using System.Media;
@@ -18,11 +19,12 @@ using System.Xml.Schema;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 #pragma warning disable CS8604 // Possible null reference argument.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
 
 namespace RetrostrikeDSKUI
 {
-    public partial class MainWindow : MaterialForm
+    public partial class WindowMain : MaterialForm
     {
         #region Fields
         public const string MainWindowTitle = "RetroStrike DSK Editor";
@@ -34,7 +36,7 @@ namespace RetrostrikeDSKUI
         #endregion
 
         #region CTORS
-        public MainWindow()
+        public WindowMain()
         {
 
             ///
@@ -111,7 +113,7 @@ namespace RetrostrikeDSKUI
                             Globals.ActiveDSK.CopyRFITo(texture, xMem);
                             xMem.Seek(0, SeekOrigin.Begin);
 
-                            PblFile texPbl = new PblFile(xMem);
+                            PblFile texPbl = new PblFile(Globals.ActiveDSK, xMem);
                             texPbl.Read();
                             var texChunk = texPbl.RootChunk.GetChildByID("tex_");
                             if (texChunk != null)
@@ -143,7 +145,7 @@ namespace RetrostrikeDSKUI
             OFD.Multiselect = false;
             if (OFD.ShowDialog() == DialogResult.OK)
             {
-                ImportWindow window = new ImportWindow(this.GetSelectedViewFileType(), OFD.FileName);
+                WindowImport window = new WindowImport(this.GetSelectedViewFileType(), OFD.FileName);
                 window.ShowDialog();
                 if (window.ImportSuccess && window.WasFileImported)
                 {
@@ -186,22 +188,43 @@ namespace RetrostrikeDSKUI
             {
                 if (filesToExtract.Length > 1)
                     throw new NotImplementedException();
-                MemoryStream xMem = new MemoryStream();
-                Globals.ActiveDSK.CopyRFITo(filesToExtract[0], xMem);
-                xMem.Seek(0, SeekOrigin.Begin);
-                PblFile testPBL = new PblFile(xMem);
-                testPBL.Read();
+                if (!ExportHelpers.IsTypeExportSupported(filesToExtract[0].GetActiveTypeHash()))
+                    return;
+                var exportWindowType = ExportHelpers.GetExportFormForSupportedType(filesToExtract[0].GetActiveTypeHash());
+                var exportWindow = (Form)Activator.CreateInstance(exportWindowType, filesToExtract[0]);
+                exportWindow.ShowDialog();
+                if (((IExportWindow)exportWindow).ExportSucess)
+                {
+                    Debug.WriteLine("success");
+                }
+                else
+                {
+                    Debug.WriteLine("fail");
+                }
 
-                PblChunk texChunk = testPBL.RootChunk.GetChildByID("tex_");
-                PblChunk nameChunk = texChunk.GetChildByID("NAME");
-                PblChunk bodyChunk = texChunk.GetChildByID("BODY");
-                string nameInChunk = nameChunk.GetDataAsString(Encoding.ASCII);
+                ///
+                /// CONTINUE HERE
+                /// TODO: Furnish the WindowExportTexture window and make it work.
+                ///
+                ///
 
-                RedTextureXBox texture = RedTextureXBox.CreateFromPBLChunk(texChunk);
-                string errors = string.Empty;
-                Stream xOut = File.Open("testdata.dat", FileMode.OpenOrCreate);
-                texture.Exp(xOut, out errors);
-                xOut.Close();
+
+                //MemoryStream xMem = new MemoryStream();
+                //Globals.ActiveDSK.CopyRFITo(filesToExtract[0], xMem);
+                //xMem.Seek(0, SeekOrigin.Begin);
+                //PblFile testPBL = new PblFile(xMem);
+                //testPBL.Read();
+                //
+                //PblChunk texChunk = testPBL.RootChunk.GetChildByID("tex_");
+                //PblChunk nameChunk = texChunk.GetChildByID("NAME");
+                //PblChunk bodyChunk = texChunk.GetChildByID("BODY");
+                //string nameInChunk = nameChunk.GetDataAsString(Encoding.ASCII);
+                //
+                //RedTextureXBox texture = RedTextureXBox.CreateFromPBLChunk(texChunk);
+                //string errors = string.Empty;
+                //Stream xOut = File.Open("testdata.dat", FileMode.OpenOrCreate);
+                //texture.Exp(xOut, out errors);
+                //xOut.Close();
             }
         }
         private void FileOptionsContextMenu_Replace_Click(object sender, EventArgs e)
@@ -349,6 +372,7 @@ namespace RetrostrikeDSKUI
         }
         #endregion
 
+        #region MainTabControl Events
         private void mainTabControl_Selected(object sender, TabControlEventArgs e)
         {
             if (e.TabPage?.Tag != null && e.TabPage?.Tag is uint)
@@ -356,11 +380,82 @@ namespace RetrostrikeDSKUI
                 SetMainListViewActiveFileType((uint)e.TabPage.Tag);
             }
         }
-        private void MainTabControl_Selected(object? sender, TabControlEventArgs e)
+        #endregion
+
+        #region MainListView Events
+        private void MainListView_RetrieveVirtualItem(object? sender, RetrieveVirtualItemEventArgs e)
         {
-            throw new NotImplementedException();
+            //If we want to have more columns (info for individual types) later we should create a function to Create a ListViewItem for a certain type,
+            //  and then another function to populate the listview item with info.
+            if (Globals.ActiveDSK.Files.ContainsKey(GetSelectedViewFileType()))
+            {
+
+                var targettedFiles = Globals.ActiveDSK.Files[GetSelectedViewFileType()];
+                if (e.ItemIndex < 0 || e.ItemIndex >= targettedFiles.Count)
+                {
+#if DEBUG
+                    //This happens because the UI repaint tries to trigger a RetrieveVirtualItem in the middle of a changeover, so it will not have the correct sizes. 
+                    //  Not sure if there's a way to fix this but I'll look at it more eventually.
+                    Debug.WriteLine($"{nameof(WindowMain)}::{nameof(MainListView_RetrieveVirtualItem)} HIT FAILSAFE (len: {targettedFiles.Count}) (req: {e.ItemIndex})");
+#endif
+                    //Fail-safe for UI painting in the middle of a changeover which triggers a request for virtualitems.
+                    e.Item = new ListViewItem(string.Empty);
+                    e.Item.SubItems.Add("");
+                    e.Item.SubItems.Add("");
+                    return;
+                }
+                if (targettedFiles.Count > 0)
+                {
+                    var targetItem = targettedFiles[e.ItemIndex];
+                    var item = new ListViewItem();
+
+                    item.Text = Globals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
+                    item.SubItems.Add(Globals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
+                    item.SubItems.Add($"{targetItem.GetActiveFileSize()}");
+
+                    e.Item = item;
+                    e.Item.BackColor =
+                        targetItem.IsBeingReplaced
+                        ? ReplacedColor
+                        : targetItem.IsNewImportedFile
+                        ? ImportedColor
+                        : targetItem.IsBeingRemoved
+                        ? RemovedColor
+                        : SystemColors.Window;
+                }
+            }
+        }
+        private void MainListView_Resize(object? sender, EventArgs e)
+        {
+            ResizeColumns();
+        }
+        private readonly float[] columnRatios = { 0.5f, 0.3f, 0.2f };
+
+        private void ResizeColumns()
+        {
+            SendMessage(mainListView.Handle, WM_SETREDRAW, false, 0);
+            try
+            {
+                int width = mainListView.ClientSize.Width - SystemInformation.VerticalScrollBarWidth;
+                int used = 0;
+                for (int i = 0; i < mainListView.Columns.Count - 1; i++)
+                {
+                    int w = (int)(width * columnRatios[i]);
+                    mainListView.Columns[i].Width = w;
+                    used += w;
+                }
+                mainListView.Columns[mainListView.Columns.Count - 1].Width = width - used;
+            }
+            finally
+            {
+                SendMessage(mainListView.Handle, WM_SETREDRAW, true, 0);
+                mainListView.Invalidate();
+            }
         }
 
+
+        #endregion
+        
         #region Methods
         void SetWindowTitleExtension(string titleExtension)
         {
@@ -469,7 +564,7 @@ namespace RetrostrikeDSKUI
         {
             mainListView.VirtualListSize = size;
 #if DEBUG
-            Debug.WriteLine($"{nameof(MainWindow)}::{nameof(SetMainListViewVirtualListSize)} Setting VirtualListSize to {size}");
+            Debug.WriteLine($"{nameof(WindowMain)}::{nameof(SetMainListViewVirtualListSize)} Setting VirtualListSize to {size}");
 #endif
         }
         void ValidateSelectedTabType()
@@ -644,86 +739,10 @@ namespace RetrostrikeDSKUI
         }
         #endregion
 
-        #region MainListView Events
-        private void MainListView_RetrieveVirtualItem(object? sender, RetrieveVirtualItemEventArgs e)
-        {
-            //If we want to have more columns (info for individual types) later we should create a function to Create a ListViewItem for a certain type,
-            //  and then another function to populate the listview item with info.
-            if (Globals.ActiveDSK.Files.ContainsKey(GetSelectedViewFileType()))
-            {
-
-                var targettedFiles = Globals.ActiveDSK.Files[GetSelectedViewFileType()];
-                if (e.ItemIndex < 0 || e.ItemIndex >= targettedFiles.Count)
-                {
-#if DEBUG
-                    //This happens because the UI repaint tries to trigger a RetrieveVirtualItem in the middle of a changeover, so it will not have the correct sizes. 
-                    //  Not sure if there's a way to fix this but I'll look at it more eventually.
-                    Debug.WriteLine($"{nameof(MainWindow)}::{nameof(MainListView_RetrieveVirtualItem)} HIT FAILSAFE (len: {targettedFiles.Count}) (req: {e.ItemIndex})");
-#endif
-                    //Fail-safe for UI painting in the middle of a changeover which triggers a request for virtualitems.
-                    e.Item = new ListViewItem(string.Empty);
-                    e.Item.SubItems.Add("");
-                    e.Item.SubItems.Add("");
-                    return;
-                }
-                if (targettedFiles.Count > 0)
-                {
-                    var targetItem = targettedFiles[e.ItemIndex];
-                    var item = new ListViewItem();
-
-                    item.Text = Globals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
-                    item.SubItems.Add(Globals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
-                    item.SubItems.Add($"{targetItem.GetActiveFileSize()}");
-
-                    e.Item = item;
-                    e.Item.BackColor =
-                        targetItem.IsBeingReplaced
-                        ? ReplacedColor
-                        : targetItem.IsNewImportedFile
-                        ? ImportedColor
-                        : targetItem.IsBeingRemoved
-                        ? RemovedColor
-                        : SystemColors.Window;
-                }
-            }
-        }
-        private void MainListView_Resize(object? sender, EventArgs e)
-        {
-            ResizeColumns();
-        }
-        private readonly float[] columnRatios = { 0.5f, 0.3f, 0.2f };
-
-        private void ResizeColumns()
-        {
-            SendMessage(mainListView.Handle, WM_SETREDRAW, false, 0);
-            try
-            {
-                int width = mainListView.ClientSize.Width - SystemInformation.VerticalScrollBarWidth;
-                int used = 0;
-                for (int i = 0; i < mainListView.Columns.Count - 1; i++)
-                {
-                    int w = (int)(width * columnRatios[i]);
-                    mainListView.Columns[i].Width = w;
-                    used += w;
-                }
-                mainListView.Columns[mainListView.Columns.Count - 1].Width = width - used;
-            }
-            finally
-            {
-                SendMessage(mainListView.Handle, WM_SETREDRAW, true, 0);
-                mainListView.Invalidate();
-            }
-        }
-
-
-        #endregion
-
         #region Win32
         private const int WM_SETREDRAW = 0x000B;
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int msg, bool wParam, int lParam);
         #endregion
-
-
     }
 }

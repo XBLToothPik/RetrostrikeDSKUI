@@ -1,6 +1,6 @@
 ﻿namespace RetrostrikeDSKUI.Forms
 {
-    partial class ImportWindow
+    partial class WindowImport
     {
         /// <summary>
         /// Required designer variable.

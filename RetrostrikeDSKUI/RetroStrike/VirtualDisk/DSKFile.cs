@@ -41,8 +41,11 @@ namespace RetroStrike.VirtualDisk
         #region Struct
         public class RFI
         {
-            public int OwnerFileID;
-
+            public DSKFile OwnerDSKFile;
+            public RFI(DSKFile ownerDSKFile)
+            {
+                this.OwnerDSKFile = ownerDSKFile;
+            }
 
             public uint NameHashOriginal;
             public uint FileTypeOriginal;
@@ -127,7 +130,7 @@ namespace RetroStrike.VirtualDisk
             int iOffset = dataSize * sizeof(int) + (int)mainReader.BaseStream.Position;
             for (int i = 0; i < this.Header.EntryCount; i++)
             {
-                RFI curInfo = new RFI();
+                RFI curInfo = new RFI(this);
                 curInfo.FilePositionOriginal = iOffset;
                 curInfo.FileSizeOriginal = mainReader.ReadInt32();
                 curInfo.NameHashOriginal = mainReader.ReadUInt32();
@@ -327,10 +330,9 @@ namespace RetroStrike.VirtualDisk
         {
             if (CanAddFile(typeHash, fileName))
             {
-                RFI newFile = new RFI();
+                RFI newFile = new RFI(this);
                 newFile.IsNewImportedFile = true;
                 newFile.NewIncomingFileStream = xIn;
-                newFile.OwnerFileID = 0xDEAD;
                 newFile.NewIncomingFileName = fileName;
                 newFile.NewIncomingTypeHash = typeHash;
                 if (!Files.ContainsKey(typeHash))
