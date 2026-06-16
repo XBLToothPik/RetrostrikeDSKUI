@@ -28,310 +28,310 @@
         /// </summary>
         private void InitializeComponent()
         {
-            materialLabel1 = new ReaLTaiizor.Controls.MaterialLabel();
-            pictureBox1 = new PictureBox();
-            groupBox1 = new GroupBox();
-            materialLabel2 = new ReaLTaiizor.Controls.MaterialLabel();
-            button2 = new Button();
-            button1 = new Button();
-            materialLabel6 = new ReaLTaiizor.Controls.MaterialLabel();
-            label1 = new Label();
-            label2 = new Label();
-            label3 = new Label();
-            label4 = new Label();
-            label5 = new Label();
-            materialLabel4 = new ReaLTaiizor.Controls.MaterialLabel();
-            materialLabel5 = new ReaLTaiizor.Controls.MaterialLabel();
-            materialLabel7 = new ReaLTaiizor.Controls.MaterialLabel();
-            label6 = new Label();
-            materialLabel8 = new ReaLTaiizor.Controls.MaterialLabel();
-            label7 = new Label();
-            materialLabel3 = new ReaLTaiizor.Controls.MaterialLabel();
-            materialLabel9 = new ReaLTaiizor.Controls.MaterialLabel();
-            panel1 = new Panel();
-            button5 = new Button();
-            button4 = new Button();
-            button3 = new Button();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            groupBox1.SuspendLayout();
-            panel1.SuspendLayout();
+            mipsPreviewTitle = new ReaLTaiizor.Controls.MaterialLabel();
+            pictureboxMipsPreview = new PictureBox();
+            groupBoxMipsPreview = new GroupBox();
+            labelMipsPreviewIndex = new ReaLTaiizor.Controls.MaterialLabel();
+            mipsPreviewGoRight = new Button();
+            mipsPreviewGoLeft = new Button();
+            labelMips = new ReaLTaiizor.Controls.MaterialLabel();
+            labelWidthDesc = new Label();
+            labelHeightDesc = new Label();
+            labelMipBiasDesc = new Label();
+            labelHeight = new ReaLTaiizor.Controls.MaterialLabel();
+            labelDepth = new ReaLTaiizor.Controls.MaterialLabel();
+            labelMipBias = new ReaLTaiizor.Controls.MaterialLabel();
+            labelTexFormatDesc = new Label();
+            labelTexFormat = new ReaLTaiizor.Controls.MaterialLabel();
+            labelRedFormatDesc = new Label();
+            labelWidth = new ReaLTaiizor.Controls.MaterialLabel();
+            labelRedFormat = new ReaLTaiizor.Controls.MaterialLabel();
+            panelBottom = new Panel();
+            buttonExportImage = new Button();
+            buttonCancel = new Button();
+            buttonExportMips = new Button();
+            labelDepthDesc = new Label();
+            labelMipsDesc = new Label();
+            ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).BeginInit();
+            groupBoxMipsPreview.SuspendLayout();
+            panelBottom.SuspendLayout();
             SuspendLayout();
             // 
-            // materialLabel1
+            // mipsPreviewTitle
             // 
-            materialLabel1.AutoSize = true;
-            materialLabel1.Depth = 0;
-            materialLabel1.Font = new Font("Roboto Medium", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            materialLabel1.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.H6;
-            materialLabel1.Location = new Point(37, 15);
-            materialLabel1.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel1.Name = "materialLabel1";
-            materialLabel1.Size = new Size(45, 24);
-            materialLabel1.TabIndex = 2;
-            materialLabel1.Text = "Mips";
+            mipsPreviewTitle.AutoSize = true;
+            mipsPreviewTitle.Depth = 0;
+            mipsPreviewTitle.Font = new Font("Roboto Medium", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
+            mipsPreviewTitle.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.H6;
+            mipsPreviewTitle.Location = new Point(37, 15);
+            mipsPreviewTitle.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            mipsPreviewTitle.Name = "mipsPreviewTitle";
+            mipsPreviewTitle.Size = new Size(45, 24);
+            mipsPreviewTitle.TabIndex = 2;
+            mipsPreviewTitle.Text = "Mips";
             // 
-            // pictureBox1
+            // pictureboxMipsPreview
             // 
-            pictureBox1.BackColor = Color.Transparent;
-            pictureBox1.BorderStyle = BorderStyle.FixedSingle;
-            pictureBox1.Location = new Point(28, 42);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(64, 64);
-            pictureBox1.TabIndex = 3;
-            pictureBox1.TabStop = false;
+            pictureboxMipsPreview.BackColor = Color.Transparent;
+            pictureboxMipsPreview.BorderStyle = BorderStyle.FixedSingle;
+            pictureboxMipsPreview.Location = new Point(28, 42);
+            pictureboxMipsPreview.Name = "pictureboxMipsPreview";
+            pictureboxMipsPreview.Size = new Size(64, 64);
+            pictureboxMipsPreview.TabIndex = 3;
+            pictureboxMipsPreview.TabStop = false;
             // 
-            // groupBox1
+            // groupBoxMipsPreview
             // 
-            groupBox1.BackColor = Color.Transparent;
-            groupBox1.Controls.Add(materialLabel2);
-            groupBox1.Controls.Add(button2);
-            groupBox1.Controls.Add(button1);
-            groupBox1.Controls.Add(materialLabel1);
-            groupBox1.Controls.Add(pictureBox1);
-            groupBox1.Location = new Point(210, 35);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(120, 138);
-            groupBox1.TabIndex = 7;
-            groupBox1.TabStop = false;
+            groupBoxMipsPreview.BackColor = Color.Transparent;
+            groupBoxMipsPreview.Controls.Add(labelMipsPreviewIndex);
+            groupBoxMipsPreview.Controls.Add(mipsPreviewGoRight);
+            groupBoxMipsPreview.Controls.Add(mipsPreviewGoLeft);
+            groupBoxMipsPreview.Controls.Add(mipsPreviewTitle);
+            groupBoxMipsPreview.Controls.Add(pictureboxMipsPreview);
+            groupBoxMipsPreview.Location = new Point(210, 35);
+            groupBoxMipsPreview.Name = "groupBoxMipsPreview";
+            groupBoxMipsPreview.Size = new Size(120, 138);
+            groupBoxMipsPreview.TabIndex = 7;
+            groupBoxMipsPreview.TabStop = false;
             // 
-            // materialLabel2
+            // labelMipsPreviewIndex
             // 
-            materialLabel2.Depth = 0;
-            materialLabel2.Dock = DockStyle.Bottom;
-            materialLabel2.Font = new Font("Roboto Medium", 14F, FontStyle.Bold, GraphicsUnit.Pixel);
-            materialLabel2.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Subtitle2;
-            materialLabel2.Location = new Point(3, 109);
-            materialLabel2.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel2.Name = "materialLabel2";
-            materialLabel2.Size = new Size(114, 26);
-            materialLabel2.TabIndex = 10;
-            materialLabel2.Text = "0 / 0";
-            materialLabel2.TextAlign = ContentAlignment.TopCenter;
+            labelMipsPreviewIndex.Depth = 0;
+            labelMipsPreviewIndex.Dock = DockStyle.Bottom;
+            labelMipsPreviewIndex.Font = new Font("Roboto Medium", 14F, FontStyle.Bold, GraphicsUnit.Pixel);
+            labelMipsPreviewIndex.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Subtitle2;
+            labelMipsPreviewIndex.Location = new Point(3, 109);
+            labelMipsPreviewIndex.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelMipsPreviewIndex.Name = "labelMipsPreviewIndex";
+            labelMipsPreviewIndex.Size = new Size(114, 26);
+            labelMipsPreviewIndex.TabIndex = 10;
+            labelMipsPreviewIndex.Text = "0 / 0";
+            labelMipsPreviewIndex.TextAlign = ContentAlignment.TopCenter;
             // 
-            // button2
+            // mipsPreviewGoRight
             // 
-            button2.Location = new Point(92, 41);
-            button2.Name = "button2";
-            button2.Size = new Size(22, 66);
-            button2.TabIndex = 9;
-            button2.Text = ">";
-            button2.UseVisualStyleBackColor = true;
+            mipsPreviewGoRight.Location = new Point(92, 41);
+            mipsPreviewGoRight.Name = "mipsPreviewGoRight";
+            mipsPreviewGoRight.Size = new Size(22, 66);
+            mipsPreviewGoRight.TabIndex = 9;
+            mipsPreviewGoRight.Text = ">";
+            mipsPreviewGoRight.UseVisualStyleBackColor = true;
             // 
-            // button1
+            // mipsPreviewGoLeft
             // 
-            button1.Location = new Point(6, 41);
-            button1.Name = "button1";
-            button1.Size = new Size(22, 66);
-            button1.TabIndex = 8;
-            button1.Text = "<";
-            button1.UseVisualStyleBackColor = true;
+            mipsPreviewGoLeft.Location = new Point(6, 41);
+            mipsPreviewGoLeft.Name = "mipsPreviewGoLeft";
+            mipsPreviewGoLeft.Size = new Size(22, 66);
+            mipsPreviewGoLeft.TabIndex = 8;
+            mipsPreviewGoLeft.Text = "<";
+            mipsPreviewGoLeft.UseVisualStyleBackColor = true;
             // 
-            // materialLabel6
+            // labelMips
             // 
-            materialLabel6.Depth = 0;
-            materialLabel6.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel6.Location = new Point(130, 127);
-            materialLabel6.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel6.Name = "materialLabel6";
-            materialLabel6.Size = new Size(74, 19);
-            materialLabel6.TabIndex = 9;
-            materialLabel6.Text = "10";
+            labelMips.Depth = 0;
+            labelMips.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelMips.Location = new Point(130, 127);
+            labelMips.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelMips.Name = "labelMips";
+            labelMips.Size = new Size(74, 19);
+            labelMips.TabIndex = 9;
+            labelMips.Text = "10";
             // 
-            // label1
+            // labelWidthDesc
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label1.Location = new Point(6, 41);
-            label1.Name = "label1";
-            label1.Size = new Size(69, 25);
-            label1.TabIndex = 10;
-            label1.Text = "Width:";
+            labelWidthDesc.AutoSize = true;
+            labelWidthDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelWidthDesc.Location = new Point(6, 41);
+            labelWidthDesc.Name = "labelWidthDesc";
+            labelWidthDesc.Size = new Size(69, 25);
+            labelWidthDesc.TabIndex = 10;
+            labelWidthDesc.Text = "Width:";
             // 
-            // label2
+            // labelHeightDesc
             // 
-            label2.AutoSize = true;
-            label2.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label2.Location = new Point(6, 68);
-            label2.Name = "label2";
-            label2.Size = new Size(68, 25);
-            label2.TabIndex = 11;
-            label2.Text = "Height";
+            labelHeightDesc.AutoSize = true;
+            labelHeightDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelHeightDesc.Location = new Point(6, 68);
+            labelHeightDesc.Name = "labelHeightDesc";
+            labelHeightDesc.Size = new Size(74, 25);
+            labelHeightDesc.TabIndex = 11;
+            labelHeightDesc.Text = "Height:";
             // 
-            // label3
+            // labelMipBiasDesc
             // 
-            label3.AutoSize = true;
-            label3.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label3.Location = new Point(6, 122);
-            label3.Name = "label3";
-            label3.Size = new Size(54, 25);
-            label3.TabIndex = 12;
-            label3.Text = "Mips";
+            labelMipBiasDesc.AutoSize = true;
+            labelMipBiasDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelMipBiasDesc.Location = new Point(6, 149);
+            labelMipBiasDesc.Name = "labelMipBiasDesc";
+            labelMipBiasDesc.Size = new Size(93, 25);
+            labelMipBiasDesc.TabIndex = 14;
+            labelMipBiasDesc.Text = "Mip Bias:";
             // 
-            // label4
+            // labelHeight
             // 
-            label4.AutoSize = true;
-            label4.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label4.Location = new Point(6, 95);
-            label4.Name = "label4";
-            label4.Size = new Size(64, 25);
-            label4.TabIndex = 13;
-            label4.Text = "Depth";
+            labelHeight.Depth = 0;
+            labelHeight.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelHeight.Location = new Point(130, 73);
+            labelHeight.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelHeight.Name = "labelHeight";
+            labelHeight.Size = new Size(74, 19);
+            labelHeight.TabIndex = 16;
+            labelHeight.Text = "512";
             // 
-            // label5
+            // labelDepth
             // 
-            label5.AutoSize = true;
-            label5.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label5.Location = new Point(6, 149);
-            label5.Name = "label5";
-            label5.Size = new Size(93, 25);
-            label5.TabIndex = 14;
-            label5.Text = "Mip Bias:";
+            labelDepth.Depth = 0;
+            labelDepth.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelDepth.Location = new Point(130, 101);
+            labelDepth.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelDepth.Name = "labelDepth";
+            labelDepth.Size = new Size(74, 15);
+            labelDepth.TabIndex = 17;
+            labelDepth.Text = "1";
             // 
-            // materialLabel4
+            // labelMipBias
             // 
-            materialLabel4.Depth = 0;
-            materialLabel4.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel4.Location = new Point(130, 73);
-            materialLabel4.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel4.Name = "materialLabel4";
-            materialLabel4.Size = new Size(74, 19);
-            materialLabel4.TabIndex = 16;
-            materialLabel4.Text = "512";
+            labelMipBias.Depth = 0;
+            labelMipBias.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelMipBias.Location = new Point(130, 154);
+            labelMipBias.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelMipBias.Name = "labelMipBias";
+            labelMipBias.Size = new Size(74, 19);
+            labelMipBias.TabIndex = 18;
+            labelMipBias.Text = "0.75";
             // 
-            // materialLabel5
+            // labelTexFormatDesc
             // 
-            materialLabel5.Depth = 0;
-            materialLabel5.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel5.Location = new Point(130, 101);
-            materialLabel5.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel5.Name = "materialLabel5";
-            materialLabel5.Size = new Size(74, 15);
-            materialLabel5.TabIndex = 17;
-            materialLabel5.Text = "1";
+            labelTexFormatDesc.AutoSize = true;
+            labelTexFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTexFormatDesc.Location = new Point(6, 176);
+            labelTexFormatDesc.Name = "labelTexFormatDesc";
+            labelTexFormatDesc.Size = new Size(118, 25);
+            labelTexFormatDesc.TabIndex = 19;
+            labelTexFormatDesc.Text = "Tex Format:";
             // 
-            // materialLabel7
+            // labelTexFormat
             // 
-            materialLabel7.Depth = 0;
-            materialLabel7.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel7.Location = new Point(130, 154);
-            materialLabel7.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel7.Name = "materialLabel7";
-            materialLabel7.Size = new Size(74, 19);
-            materialLabel7.TabIndex = 18;
-            materialLabel7.Text = "0.75";
+            labelTexFormat.Depth = 0;
+            labelTexFormat.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelTexFormat.Location = new Point(130, 181);
+            labelTexFormat.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelTexFormat.Name = "labelTexFormat";
+            labelTexFormat.Size = new Size(200, 19);
+            labelTexFormat.TabIndex = 20;
+            labelTexFormat.Text = "XBOXFMT_D16_LOCKABLE";
             // 
-            // label6
+            // labelRedFormatDesc
             // 
-            label6.AutoSize = true;
-            label6.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label6.Location = new Point(6, 176);
-            label6.Name = "label6";
-            label6.Size = new Size(118, 25);
-            label6.TabIndex = 19;
-            label6.Text = "Tex Format:";
+            labelRedFormatDesc.AutoSize = true;
+            labelRedFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelRedFormatDesc.Location = new Point(6, 203);
+            labelRedFormatDesc.Name = "labelRedFormatDesc";
+            labelRedFormatDesc.Size = new Size(119, 25);
+            labelRedFormatDesc.TabIndex = 21;
+            labelRedFormatDesc.Text = "Red Format:";
             // 
-            // materialLabel8
+            // labelWidth
             // 
-            materialLabel8.Depth = 0;
-            materialLabel8.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel8.Location = new Point(130, 181);
-            materialLabel8.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel8.Name = "materialLabel8";
-            materialLabel8.Size = new Size(200, 19);
-            materialLabel8.TabIndex = 20;
-            materialLabel8.Text = "XBOXFMT_D16_LOCKABLE";
+            labelWidth.Depth = 0;
+            labelWidth.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelWidth.Location = new Point(130, 46);
+            labelWidth.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelWidth.Name = "labelWidth";
+            labelWidth.Size = new Size(74, 19);
+            labelWidth.TabIndex = 15;
+            labelWidth.Text = "1920";
             // 
-            // label7
+            // labelRedFormat
             // 
-            label7.AutoSize = true;
-            label7.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label7.Location = new Point(6, 203);
-            label7.Name = "label7";
-            label7.Size = new Size(119, 25);
-            label7.TabIndex = 21;
-            label7.Text = "Red Format:";
+            labelRedFormat.Depth = 0;
+            labelRedFormat.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelRedFormat.Location = new Point(130, 208);
+            labelRedFormat.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelRedFormat.Name = "labelRedFormat";
+            labelRedFormat.Size = new Size(200, 19);
+            labelRedFormat.TabIndex = 22;
+            labelRedFormat.Text = "CUBEMAP";
             // 
-            // materialLabel3
+            // panelBottom
             // 
-            materialLabel3.Depth = 0;
-            materialLabel3.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel3.Location = new Point(130, 46);
-            materialLabel3.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel3.Name = "materialLabel3";
-            materialLabel3.Size = new Size(74, 19);
-            materialLabel3.TabIndex = 15;
-            materialLabel3.Text = "1920";
+            panelBottom.Controls.Add(buttonExportImage);
+            panelBottom.Controls.Add(buttonCancel);
+            panelBottom.Controls.Add(buttonExportMips);
+            panelBottom.Dock = DockStyle.Bottom;
+            panelBottom.Location = new Point(3, 232);
+            panelBottom.Name = "panelBottom";
+            panelBottom.Size = new Size(328, 29);
+            panelBottom.TabIndex = 25;
             // 
-            // materialLabel9
+            // buttonExportImage
             // 
-            materialLabel9.Depth = 0;
-            materialLabel9.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel9.Location = new Point(130, 208);
-            materialLabel9.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel9.Name = "materialLabel9";
-            materialLabel9.Size = new Size(200, 19);
-            materialLabel9.TabIndex = 22;
-            materialLabel9.Text = "CUBEMAP";
+            buttonExportImage.Location = new Point(3, 3);
+            buttonExportImage.Name = "buttonExportImage";
+            buttonExportImage.Size = new Size(108, 23);
+            buttonExportImage.TabIndex = 2;
+            buttonExportImage.Text = "Export Image";
+            buttonExportImage.UseVisualStyleBackColor = true;
             // 
-            // panel1
+            // buttonCancel
             // 
-            panel1.Controls.Add(button5);
-            panel1.Controls.Add(button4);
-            panel1.Controls.Add(button3);
-            panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(3, 232);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(331, 29);
-            panel1.TabIndex = 25;
+            buttonCancel.Location = new Point(265, 3);
+            buttonCancel.Name = "buttonCancel";
+            buttonCancel.Size = new Size(59, 23);
+            buttonCancel.TabIndex = 1;
+            buttonCancel.Text = "Cancel";
+            buttonCancel.UseVisualStyleBackColor = true;
             // 
-            // button5
+            // buttonExportMips
             // 
-            button5.Location = new Point(3, 3);
-            button5.Name = "button5";
-            button5.Size = new Size(108, 23);
-            button5.TabIndex = 2;
-            button5.Text = "Export Image";
-            button5.UseVisualStyleBackColor = true;
+            buttonExportMips.Location = new Point(117, 3);
+            buttonExportMips.Name = "buttonExportMips";
+            buttonExportMips.Size = new Size(108, 23);
+            buttonExportMips.TabIndex = 0;
+            buttonExportMips.Text = "Export Mips";
+            buttonExportMips.UseVisualStyleBackColor = true;
             // 
-            // button4
+            // labelDepthDesc
             // 
-            button4.Location = new Point(265, 3);
-            button4.Name = "button4";
-            button4.Size = new Size(59, 23);
-            button4.TabIndex = 1;
-            button4.Text = "Cancel";
-            button4.UseVisualStyleBackColor = true;
+            labelDepthDesc.AutoSize = true;
+            labelDepthDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelDepthDesc.Location = new Point(6, 96);
+            labelDepthDesc.Name = "labelDepthDesc";
+            labelDepthDesc.Size = new Size(70, 25);
+            labelDepthDesc.TabIndex = 26;
+            labelDepthDesc.Text = "Depth:";
             // 
-            // button3
+            // labelMipsDesc
             // 
-            button3.Location = new Point(117, 3);
-            button3.Name = "button3";
-            button3.Size = new Size(108, 23);
-            button3.TabIndex = 0;
-            button3.Text = "Export Mips";
-            button3.UseVisualStyleBackColor = true;
+            labelMipsDesc.AutoSize = true;
+            labelMipsDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelMipsDesc.Location = new Point(6, 123);
+            labelMipsDesc.Name = "labelMipsDesc";
+            labelMipsDesc.Size = new Size(60, 25);
+            labelMipsDesc.TabIndex = 27;
+            labelMipsDesc.Text = "Mips:";
             // 
             // WindowExportTexture
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(337, 264);
-            Controls.Add(panel1);
-            Controls.Add(materialLabel9);
-            Controls.Add(label7);
-            Controls.Add(materialLabel8);
-            Controls.Add(label6);
-            Controls.Add(materialLabel7);
-            Controls.Add(materialLabel5);
-            Controls.Add(materialLabel4);
-            Controls.Add(materialLabel3);
-            Controls.Add(label5);
-            Controls.Add(label4);
-            Controls.Add(label3);
-            Controls.Add(label2);
-            Controls.Add(label1);
-            Controls.Add(materialLabel6);
-            Controls.Add(groupBox1);
+            ClientSize = new Size(334, 264);
+            Controls.Add(labelMipsDesc);
+            Controls.Add(labelDepthDesc);
+            Controls.Add(panelBottom);
+            Controls.Add(labelRedFormat);
+            Controls.Add(labelRedFormatDesc);
+            Controls.Add(labelTexFormat);
+            Controls.Add(labelTexFormatDesc);
+            Controls.Add(labelMipBias);
+            Controls.Add(labelDepth);
+            Controls.Add(labelHeight);
+            Controls.Add(labelWidth);
+            Controls.Add(labelMipBiasDesc);
+            Controls.Add(labelHeightDesc);
+            Controls.Add(labelWidthDesc);
+            Controls.Add(labelMips);
+            Controls.Add(groupBoxMipsPreview);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
             MaximizeBox = false;
@@ -340,38 +340,38 @@
             Padding = new Padding(3, 24, 3, 3);
             Text = "Export Texture - N/A";
             Load += WindowExportTexture_Load;
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
-            panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).EndInit();
+            groupBoxMipsPreview.ResumeLayout(false);
+            groupBoxMipsPreview.PerformLayout();
+            panelBottom.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel1;
-        private PictureBox pictureBox1;
-        private GroupBox groupBox1;
-        private Button button1;
-        private Button button2;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel6;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel2;
-        private Label label1;
-        private Label label2;
-        private Label label3;
-        private Label label4;
-        private Label label5;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel4;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel5;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel7;
-        private Label label6;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel8;
-        private Label label7;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel3;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel9;
-        private Panel panel1;
-        private Button button3;
-        private Button button5;
-        private Button button4;
+        private ReaLTaiizor.Controls.MaterialLabel mipsPreviewTitle;
+        private PictureBox pictureboxMipsPreview;
+        private GroupBox groupBoxMipsPreview;
+        private Button mipsPreviewGoLeft;
+        private Button mipsPreviewGoRight;
+        private ReaLTaiizor.Controls.MaterialLabel labelMips;
+        private ReaLTaiizor.Controls.MaterialLabel labelMipsPreviewIndex;
+        private Label labelWidthDesc;
+        private Label labelHeightDesc;
+        private Label labelMipBiasDesc;
+        private ReaLTaiizor.Controls.MaterialLabel labelHeight;
+        private ReaLTaiizor.Controls.MaterialLabel labelDepth;
+        private ReaLTaiizor.Controls.MaterialLabel labelMipBias;
+        private Label labelTexFormatDesc;
+        private ReaLTaiizor.Controls.MaterialLabel labelTexFormat;
+        private Label labelRedFormatDesc;
+        private ReaLTaiizor.Controls.MaterialLabel labelWidth;
+        private ReaLTaiizor.Controls.MaterialLabel labelRedFormat;
+        private Panel panelBottom;
+        private Button buttonExportMips;
+        private Button buttonExportImage;
+        private Button buttonCancel;
+        private Label labelDepthDesc;
+        private Label labelMipsDesc;
     }
 }
