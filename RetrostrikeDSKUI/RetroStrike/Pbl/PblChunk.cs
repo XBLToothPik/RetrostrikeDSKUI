@@ -64,7 +64,7 @@ namespace RetroStrike.Pbl
         }
         public string GetDataAsString(Encoding encoder)
         {
-            return encoder.GetString(GetData());
+            return encoder.GetString(GetData()).TrimEnd('\0');
         }
         public int CopyDataTo(Stream xOut, bool includeHeaderData = false)
         {

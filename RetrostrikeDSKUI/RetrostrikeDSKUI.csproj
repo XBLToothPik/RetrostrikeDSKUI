@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="ReaLTaiizor" Version="3.8.1.8" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.0.0" />
   </ItemGroup>
 
 </Project>

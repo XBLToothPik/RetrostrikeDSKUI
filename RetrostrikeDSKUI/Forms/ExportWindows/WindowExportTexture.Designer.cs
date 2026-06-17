@@ -47,9 +47,9 @@
             labelWidth = new ReaLTaiizor.Controls.MaterialLabel();
             labelRedFormat = new ReaLTaiizor.Controls.MaterialLabel();
             panelBottom = new Panel();
-            buttonExportImage = new Button();
-            buttonCancel = new Button();
-            buttonExportMips = new Button();
+            buttonExportMips = new ReaLTaiizor.Controls.PoisonDropDownButton();
+            buttonCancel = new ReaLTaiizor.Controls.PoisonDropDownButton();
+            buttonExportImage = new ReaLTaiizor.Controls.PoisonDropDownButton();
             labelDepthDesc = new Label();
             labelMipsDesc = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).BeginInit();
@@ -259,41 +259,46 @@
             // panelBottom
             // 
             panelBottom.BorderStyle = BorderStyle.FixedSingle;
-            panelBottom.Controls.Add(buttonExportImage);
-            panelBottom.Controls.Add(buttonCancel);
             panelBottom.Controls.Add(buttonExportMips);
+            panelBottom.Controls.Add(buttonCancel);
+            panelBottom.Controls.Add(buttonExportImage);
             panelBottom.Dock = DockStyle.Bottom;
             panelBottom.Location = new Point(3, 232);
             panelBottom.Name = "panelBottom";
             panelBottom.Size = new Size(332, 29);
             panelBottom.TabIndex = 25;
             // 
-            // buttonExportImage
+            // buttonExportMips
             // 
-            buttonExportImage.Location = new Point(3, 2);
-            buttonExportImage.Name = "buttonExportImage";
-            buttonExportImage.Size = new Size(108, 23);
-            buttonExportImage.TabIndex = 2;
-            buttonExportImage.Text = "Export Image";
-            buttonExportImage.UseVisualStyleBackColor = true;
+            buttonExportMips.AutoSize = true;
+            buttonExportMips.Location = new Point(116, 2);
+            buttonExportMips.Name = "buttonExportMips";
+            buttonExportMips.Size = new Size(108, 23);
+            buttonExportMips.TabIndex = 30;
+            buttonExportMips.Text = "Export Mips";
+            buttonExportMips.UseSelectable = true;
+            buttonExportMips.Click += buttonExportMips_Click;
             // 
             // buttonCancel
             // 
-            buttonCancel.Location = new Point(265, 2);
+            buttonCancel.AutoSize = true;
+            buttonCancel.Location = new Point(267, 2);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(59, 23);
-            buttonCancel.TabIndex = 1;
+            buttonCancel.TabIndex = 29;
             buttonCancel.Text = "Cancel";
-            buttonCancel.UseVisualStyleBackColor = true;
+            buttonCancel.UseSelectable = true;
             // 
-            // buttonExportMips
+            // buttonExportImage
             // 
-            buttonExportMips.Location = new Point(117, 2);
-            buttonExportMips.Name = "buttonExportMips";
-            buttonExportMips.Size = new Size(108, 23);
-            buttonExportMips.TabIndex = 0;
-            buttonExportMips.Text = "Export Mips";
-            buttonExportMips.UseVisualStyleBackColor = true;
+            buttonExportImage.AutoSize = true;
+            buttonExportImage.Location = new Point(2, 2);
+            buttonExportImage.Name = "buttonExportImage";
+            buttonExportImage.Size = new Size(108, 23);
+            buttonExportImage.TabIndex = 28;
+            buttonExportImage.Text = "Export Image";
+            buttonExportImage.UseSelectable = true;
+            buttonExportImage.Click += buttonExportImage_Click;
             // 
             // labelDepthDesc
             // 
@@ -346,10 +351,12 @@
             Padding = new Padding(3, 24, 3, 3);
             Sizable = false;
             Text = "Export Texture - N/A";
+            TopMost = true;
             ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).EndInit();
             groupBoxMipsPreview.ResumeLayout(false);
             groupBoxMipsPreview.PerformLayout();
             panelBottom.ResumeLayout(false);
+            panelBottom.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -374,10 +381,10 @@
         private ReaLTaiizor.Controls.MaterialLabel labelWidth;
         private ReaLTaiizor.Controls.MaterialLabel labelRedFormat;
         private Panel panelBottom;
-        private Button buttonExportMips;
-        private Button buttonExportImage;
-        private Button buttonCancel;
         private Label labelDepthDesc;
         private Label labelMipsDesc;
+        private ReaLTaiizor.Controls.PoisonDropDownButton buttonCancel;
+        private ReaLTaiizor.Controls.PoisonDropDownButton buttonExportImage;
+        private ReaLTaiizor.Controls.PoisonDropDownButton buttonExportMips;
     }
 }
