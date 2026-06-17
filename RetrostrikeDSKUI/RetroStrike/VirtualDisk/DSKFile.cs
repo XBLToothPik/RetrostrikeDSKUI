@@ -1,13 +1,16 @@
-﻿using System;
+﻿using RetroStrike.Utils;
+using RetrostrikeDSKUI.Application;
+using RetrostrikeDSKUI.RetroStrike;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Text;
-using RetroStrike.Utils;
-using RetrostrikeDSKUI.Application;
 #pragma warning disable CS8629 // Nullable value type may be null.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 
 namespace RetroStrike.VirtualDisk
 {
@@ -62,6 +65,8 @@ namespace RetroStrike.VirtualDisk
             public bool IsNewImportedFile;
             public bool IsBeingRemoved;
             public bool IsNewImportedFileOrReplaced => IsBeingReplaced || IsNewImportedFile;
+
+            public bool ProcessAsFileType;
 
             public Stream NewIncomingFileStream;
             public string NewIncomingFileName;
@@ -198,6 +203,11 @@ namespace RetroStrike.VirtualDisk
                     //  to ask if they want to replace the name and type too,
                     if (file.IsBeingRemoved)
                         continue;
+                    if (file.ProcessAsFileType)
+                    {
+                        ProcessNewRFIAsType(file);
+                    }
+
                     int fileSize = file.GetActiveFileSize();
                     uint nameHash = file.GetActiveNameHash();
                     uint typeHash = file.GetActiveTypeHash();
@@ -238,7 +248,50 @@ namespace RetroStrike.VirtualDisk
             this.Header.GridFileOffset = gridWriteOffset;
             this.Header.WriteHeader(writer);
         }
+        #region Processors
+        void ProcessNewRFIAsType(RFI targetRFI)
+        {
+            Dictionary<uint, string> supportedImportTypes = new Dictionary<uint, string>
+            {
+                {  Hashing.MakeFNV1A("texture"), "texture" }
+            };
+            switch (supportedImportTypes[targetRFI.GetActiveTypeHash()])
+            {
+                case "texture":
+                    ProcessNewRFIAsTexture(targetRFI);
+                    break;
+            }
+        }
+        void ProcessNewRFIAsTexture(RFI targetRFI)
+        {
+            //The targetRFI will be a new imported file.  So in this case it should be an image (png, tga..etc..)
+            //Though we should really do most of this in the RedTextureXBox (or other platform) and only
+            //  use this function to set the data.
+            //TODO: Design the Import Texture Window
+            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(targetRFI.NewIncomingFileStream);
 
+            byte[] rgba = new byte[image.Width * image.Height * 4];
+            image.CopyPixelDataTo(rgba);
+
+            int width = image.Width;
+            int height = image.Height;
+        }
+        #endregion
+
+
+        public RFI GetRFI(uint typeHash, uint nameHash)
+        {
+            if (Files.ContainsKey(typeHash))
+            {
+                var targetRFI = Files[typeHash].First(rfi => rfi.GetActiveNameHash() == nameHash);
+                return targetRFI;
+            }
+            return null;
+        }
+        public RFI GetRFI(uint typeHash, string name)
+        {
+            return GetRFI(typeHash, Hashing.MakeFNV1A(name));
+        }
         public void CopyRFITo(RFI targetRFI, Stream xOut)
         {
             //We need to check in the UI side if the target file is being replaced, if so, prompt them about it.
@@ -255,7 +308,7 @@ namespace RetroStrike.VirtualDisk
 
             IOUtils.CopyFromToWithLength(sourceFileStream, xOut, fileLen);
         }
-        public bool CancelFileReplace(RFI targetRFI, out string errors)
+        public bool CancelRFIReplace(RFI targetRFI, out string errors)
         {
             if (targetRFI.IsBeingReplaced)
             {
@@ -272,8 +325,8 @@ namespace RetroStrike.VirtualDisk
                     {
                         //A file in the original RFI's type dict with the same namehash already exists
                         errors = $"A file with the name of " +
-                            $"\"{Globals.HashResolver.ResolveHash(targetHashToRevertTo, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.All)}\" " +
-                            $"already exists in types \"{Globals.HashResolver.ResolveHash(targetRFI.FileTypeOriginal, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes)}\"";
+                            $"\"{RetroStrikeGlobals.HashResolver.ResolveHash(targetHashToRevertTo, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.All)}\" " +
+                            $"already exists in types \"{RetroStrikeGlobals.HashResolver.ResolveHash(targetRFI.FileTypeOriginal, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes)}\"";
                         return false;
                     }
                 }
@@ -326,11 +379,11 @@ namespace RetroStrike.VirtualDisk
             errors = string.Empty;
             return true;
         }
-        public bool AddFile(uint typeHash, Stream xIn, string fileName)
+        public bool AddFile(uint typeHash, Stream xIn, string fileName, out RFI newFile)
         {
             if (CanAddFile(typeHash, fileName))
             {
-                RFI newFile = new RFI(this);
+                newFile = new RFI(this);
                 newFile.IsNewImportedFile = true;
                 newFile.NewIncomingFileStream = xIn;
                 newFile.NewIncomingFileName = fileName;
@@ -340,11 +393,12 @@ namespace RetroStrike.VirtualDisk
                 Files[typeHash].Add(newFile);
                 return true;
             }
+            newFile = null;
             return false;
         }
-        public bool AddFile(string typeName, Stream xin, string fileName)
+        public bool AddFile(string typeName, Stream xin, string fileName, out RFI newRFI)
         {
-            return AddFile(Hashing.MakeFNV1A(typeName), xin, fileName);
+            return AddFile(Hashing.MakeFNV1A(typeName), xin, fileName, out newRFI);
         }
         public bool CancelImportOfFile(RFI targetRFI, out string errors)
         {
@@ -446,19 +500,7 @@ namespace RetroStrike.VirtualDisk
         {
             return CanAddFile(typeHash, Hashing.MakeFNV1A(fileName));
         }
-        public RFI GetRFI(uint typeHash, uint nameHash)
-        {
-            if (Files.ContainsKey(typeHash))
-            {
-                var targetRFI = Files[typeHash].First(rfi => rfi.GetActiveNameHash() == nameHash);
-                return targetRFI;
-            }
-            return null;
-        }
-        public RFI GetRFI(uint typeHash, string name)
-        {
-            return GetRFI(typeHash, Hashing.MakeFNV1A(name));
-        }
+
         void ValidateDSKDict()
         {
             List<uint> typesToRemove = new List<uint>(Files.Count);

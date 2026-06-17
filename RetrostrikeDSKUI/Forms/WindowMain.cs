@@ -54,10 +54,12 @@ namespace RetrostrikeDSKUI
             CreateMainListView();
             SetMainListViewContextMenuItems();
 
-            Globals.InitGlobals();
-            Globals.HashResolver = new HashNameResolver(AppContext.BaseDirectory);
-            Globals.HashResolver.LoadHashDict("knownfilenames.txt", HashNameResolver.eHashDictType.FileNames);
-            Globals.HashResolver.LoadHashDict("knowntypesdict.txt", HashNameResolver.eHashDictType.FileTypes);
+            AppGlobals.InitGlobals();
+            RetroStrikeGlobals.HashResolver = new HashNameResolver();
+            using (Stream xIn = File.Open("knownfilenames.txt", FileMode.Open, FileAccess.Read))
+                RetroStrikeGlobals.HashResolver.LoadHashDict(xIn, HashNameResolver.eHashDictType.FileNames);
+            using (Stream xIn = File.Open("knowntypesdict.txt", FileMode.Open, FileAccess.Read))
+                RetroStrikeGlobals.HashResolver.LoadHashDict(xIn, HashNameResolver.eHashDictType.FileTypes);
         }
         #endregion
 
@@ -92,7 +94,7 @@ namespace RetrostrikeDSKUI
                 Stream xOut = File.Open(SFD.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
                 xOut.Seek(0, SeekOrigin.Begin);
                 xOut.SetLength(0);
-                Globals.ActiveDSK.WriteToNewFromCurrent(xOut);
+                AppGlobals.ActiveDSK.WriteToNewFromCurrent(xOut);
                 xOut.Flush();
                 xOut.Close();
 
@@ -100,20 +102,20 @@ namespace RetrostrikeDSKUI
         }
         private void mainMenuStrip_Debug_Test_Click(object sender, EventArgs e)
         {
-            if (Globals.ActiveDSK != null)
+            if (AppGlobals.ActiveDSK != null)
             {
                 uint textureHash = Hashing.MakeFNV1A("texture");
-                if (Globals.ActiveDSK.DoesTypeExist(textureHash))
+                if (AppGlobals.ActiveDSK.DoesTypeExist(textureHash))
                 {
-                    var textureFiles = Globals.ActiveDSK.Files[textureHash];
+                    var textureFiles = AppGlobals.ActiveDSK.Files[textureHash];
                     foreach (var texture in textureFiles)
                     {
                         using (MemoryStream xMem = new MemoryStream())
                         {
-                            Globals.ActiveDSK.CopyRFITo(texture, xMem);
+                            AppGlobals.ActiveDSK.CopyRFITo(texture, xMem);
                             xMem.Seek(0, SeekOrigin.Begin);
 
-                            PblFile texPbl = new PblFile(Globals.ActiveDSK, xMem);
+                            PblFile texPbl = new PblFile(AppGlobals.ActiveDSK, xMem);
                             texPbl.Read();
                             var texChunk = texPbl.RootChunk.GetChildByID("tex_");
                             if (texChunk != null)
@@ -174,7 +176,7 @@ namespace RetrostrikeDSKUI
                     xOut.Seek(0, SeekOrigin.Begin);
                     xOut.SetLength(0);
 
-                    Globals.ActiveDSK.CopyRFITo(filesToExtract[0], xOut);
+                    AppGlobals.ActiveDSK.CopyRFITo(filesToExtract[0], xOut);
 
                     xOut.Flush();
                     xOut.Close();
@@ -235,14 +237,14 @@ namespace RetrostrikeDSKUI
                 if (filesToReplace.Length > 1)
                     throw new NotImplementedException();
                 OpenFileDialog OFD = new OpenFileDialog();
-                OFD.Title = $"Replace {Globals.HashResolver.ResolveHash(filesToReplace[0].NameHashOriginal, HashNameResolver.eHashTypeSelector.All)}...";
+                OFD.Title = $"Replace {RetroStrikeGlobals.HashResolver.ResolveHash(filesToReplace[0].NameHashOriginal, HashNameResolver.eHashTypeSelector.All)}...";
                 OFD.Filter = "|*.*";
                 OFD.Multiselect = false;
                 if (OFD.ShowDialog() == DialogResult.OK)
                 {
                     Stream xIn = File.Open(OFD.FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                     string errors = string.Empty;
-                    if (!Globals.ActiveDSK.ReplaceRFIWithStream(filesToReplace[0], xIn, out errors))
+                    if (!AppGlobals.ActiveDSK.ReplaceRFIWithStream(filesToReplace[0], xIn, out errors))
                     {
                         MessageBox.Show(errors, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
@@ -259,7 +261,7 @@ namespace RetrostrikeDSKUI
                 if (MessageBox.Show("Are you sure you want to cancel the replacement of this file?", "Cancel Replacement", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     string errors = string.Empty;
-                    if (Globals.ActiveDSK.CancelFileReplace(filesToCancelReplacementOf[0], out errors))
+                    if (AppGlobals.ActiveDSK.CancelRFIReplace(filesToCancelReplacementOf[0], out errors))
                     {
                         SystemSounds.Asterisk.Play();
                     }
@@ -296,7 +298,7 @@ namespace RetrostrikeDSKUI
                 if (MessageBox.Show("Are you sure you want to cancel this import?", "Confirm Import Cancellation", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     string errors = string.Empty;
-                    if (Globals.ActiveDSK.CancelImportOfFile(filesToCancelImportOf[0], out errors))
+                    if (AppGlobals.ActiveDSK.CancelImportOfFile(filesToCancelImportOf[0], out errors))
                     {
                         SetMainListViewActiveFileType(GetSelectedViewFileType());
                         SystemSounds.Asterisk.Play();
@@ -314,7 +316,7 @@ namespace RetrostrikeDSKUI
                 if (filesToCancelRemoveOf.Length > 1)
                     throw new NotImplementedException();
                 string errors = string.Empty;
-                if (Globals.ActiveDSK.CancelRemovalOfFile(filesToCancelRemoveOf[0], out errors))
+                if (AppGlobals.ActiveDSK.CancelRemovalOfFile(filesToCancelRemoveOf[0], out errors))
                 {
                     SystemSounds.Asterisk.Play();
                 }
@@ -333,7 +335,7 @@ namespace RetrostrikeDSKUI
             {
                 var targetRFI = filesToView[0];
                 StringBuilder tBuilt = new StringBuilder();
-                tBuilt.AppendLine($"Active Name: {Globals.HashResolver.ResolveHash(targetRFI.GetActiveNameHash(), HashNameResolver.eHashTypeSelector.FileNames)}");
+                tBuilt.AppendLine($"Active Name: {RetroStrikeGlobals.HashResolver.ResolveHash(targetRFI.GetActiveNameHash(), HashNameResolver.eHashTypeSelector.FileNames)}");
                 tBuilt.AppendLine();
                 tBuilt.AppendLine($"IsBeingReplaced:\t{targetRFI.IsBeingReplaced}");
                 tBuilt.AppendLine($"IsBeingRemoved:\t{targetRFI.IsBeingRemoved}");
@@ -387,10 +389,10 @@ namespace RetrostrikeDSKUI
         {
             //If we want to have more columns (info for individual types) later we should create a function to Create a ListViewItem for a certain type,
             //  and then another function to populate the listview item with info.
-            if (Globals.ActiveDSK.Files.ContainsKey(GetSelectedViewFileType()))
+            if (AppGlobals.ActiveDSK.Files.ContainsKey(GetSelectedViewFileType()))
             {
 
-                var targettedFiles = Globals.ActiveDSK.Files[GetSelectedViewFileType()];
+                var targettedFiles = AppGlobals.ActiveDSK.Files[GetSelectedViewFileType()];
                 if (e.ItemIndex < 0 || e.ItemIndex >= targettedFiles.Count)
                 {
 #if DEBUG
@@ -409,8 +411,8 @@ namespace RetrostrikeDSKUI
                     var targetItem = targettedFiles[e.ItemIndex];
                     var item = new ListViewItem();
 
-                    item.Text = Globals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
-                    item.SubItems.Add(Globals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
+                    item.Text = RetroStrikeGlobals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
+                    item.SubItems.Add(RetroStrikeGlobals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
                     item.SubItems.Add($"{targetItem.GetActiveFileSize()}");
 
                     e.Item = item;
@@ -504,8 +506,8 @@ namespace RetrostrikeDSKUI
 
         void OpenDSK(Stream xIn)
         {
-            Globals.ActiveDSK = new DSKFile(xIn);
-            Globals.ActiveDSK.Read();
+            AppGlobals.ActiveDSK = new DSKFile(xIn);
+            AppGlobals.ActiveDSK.Read();
         }
         void PresentRFIInfo()
         {
@@ -513,11 +515,11 @@ namespace RetrostrikeDSKUI
             var activelySelectedType = GetSelectedViewFileType();
             mainTabControl.Selected -= this.mainTabControl_Selected;
             mainTabControl.TabPages.Clear();
-            foreach (var pair in Globals.ActiveDSK.Files)
+            foreach (var pair in AppGlobals.ActiveDSK.Files)
             {
                 if (pair.Value.Count > 0)
                 {
-                    var typeName = Globals.HashResolver.ResolveHash(pair.Key, HashNameResolver.eHashTypeSelector.All);
+                    var typeName = RetroStrikeGlobals.HashResolver.ResolveHash(pair.Key, HashNameResolver.eHashTypeSelector.All);
                     System.Windows.Forms.TabPage newTab = new System.Windows.Forms.TabPage();
 
                     newTab.Name = $"mainTabControl_tab_{typeName}";
@@ -529,12 +531,12 @@ namespace RetrostrikeDSKUI
             }
             mainTabControl.Selected += this.mainTabControl_Selected;
 
-            if (Globals.ActiveDSK.Files.Count > 0)
+            if (AppGlobals.ActiveDSK.Files.Count > 0)
             {
-                if (Globals.ActiveDSK.DoesTypeExist(activelySelectedType))
+                if (AppGlobals.ActiveDSK.DoesTypeExist(activelySelectedType))
                     SetMainListViewActiveFileType(activelySelectedType);
                 else
-                    SetMainListViewActiveFileType(Globals.ActiveDSK.Files.FirstOrDefault().Key);
+                    SetMainListViewActiveFileType(AppGlobals.ActiveDSK.Files.FirstOrDefault().Key);
             }
         }
 
@@ -548,7 +550,7 @@ namespace RetrostrikeDSKUI
                 {
                     if (mainTabControl.SelectedTab != tabPage)
                         mainTabControl.SelectedTab = tabPage;
-                    SetMainListViewVirtualListSize(Globals.ActiveDSK.Files[fileTypeHash].Count);
+                    SetMainListViewVirtualListSize(AppGlobals.ActiveDSK.Files[fileTypeHash].Count);
                     if (mainListView.Parent != null)
                         mainListView.Parent.Controls.Remove(mainListView);
                     tabPage.Controls.Add(mainListView);
@@ -572,7 +574,7 @@ namespace RetrostrikeDSKUI
             if (mainTabControl.SelectedTab != null && mainTabControl.SelectedTab.Tag != null)
             {
                 uint tabFileType = (uint)mainTabControl.SelectedTab.Tag;
-                if (!Globals.ActiveDSK.DoesTypeExist(tabFileType))
+                if (!AppGlobals.ActiveDSK.DoesTypeExist(tabFileType))
                 {
                     SetMainListViewVirtualListSize(0);
                     mainTabControl.TabPages.Remove(mainTabControl.SelectedTab);
@@ -717,9 +719,9 @@ namespace RetrostrikeDSKUI
 
         DSKFile.RFI[] GetSelectedRFISFromListView()
         {
-            if (Globals.ActiveDSK == null)
+            if (AppGlobals.ActiveDSK == null)
                 return new DSKFile.RFI[0];
-            var _currentFiles = Globals.ActiveDSK.Files[GetSelectedViewFileType()];
+            var _currentFiles = AppGlobals.ActiveDSK.Files[GetSelectedViewFileType()];
             var indices = mainListView.SelectedIndices;
             DSKFile.RFI[] toRet = new DSKFile.RFI[indices.Count];
             for (int i = 0; i < indices.Count; i++)

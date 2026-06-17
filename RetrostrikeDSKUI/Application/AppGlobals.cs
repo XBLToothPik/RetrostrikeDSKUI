@@ -8,9 +8,8 @@ using RetrostrikeDSKUI.RetroStrike;
 
 namespace RetrostrikeDSKUI.Application
 {
-    public static class Globals
+    public static class AppGlobals
     {
-        public static HashNameResolver HashResolver;
         public static DSKFile ActiveDSK;
         public static void InitGlobals()
         {

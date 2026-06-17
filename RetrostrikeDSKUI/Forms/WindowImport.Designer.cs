@@ -43,7 +43,7 @@
             // 
             // button_Import
             // 
-            button_Import.Location = new Point(12, 178);
+            button_Import.Location = new Point(6, 193);
             button_Import.Name = "button_Import";
             button_Import.Size = new Size(252, 23);
             button_Import.TabIndex = 1;
@@ -61,7 +61,7 @@
             groupBox_Details.Controls.Add(button_SelectImportFile);
             groupBox_Details.Controls.Add(textbox_ImportFileName);
             groupBox_Details.Font = new Font("Segoe UI", 15F);
-            groupBox_Details.Location = new Point(12, 12);
+            groupBox_Details.Location = new Point(6, 27);
             groupBox_Details.Name = "groupBox_Details";
             groupBox_Details.Size = new Size(333, 160);
             groupBox_Details.TabIndex = 3;
@@ -143,7 +143,7 @@
             // 
             // button_Cancel
             // 
-            button_Cancel.Location = new Point(270, 178);
+            button_Cancel.Location = new Point(264, 193);
             button_Cancel.Name = "button_Cancel";
             button_Cancel.Size = new Size(75, 23);
             button_Cancel.TabIndex = 2;
@@ -151,16 +151,18 @@
             button_Cancel.UseVisualStyleBackColor = true;
             button_Cancel.Click += button_Cancel_Click;
             // 
-            // ImportWindow
+            // WindowImport
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(357, 207);
+            ClientSize = new Size(345, 221);
             Controls.Add(groupBox_Details);
             Controls.Add(button_Cancel);
             Controls.Add(button_Import);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
-            Name = "ImportWindow";
+            FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
+            Name = "WindowImport";
+            Padding = new Padding(3, 24, 3, 3);
             StartPosition = FormStartPosition.CenterParent;
             Text = "Import New File";
             groupBox_Details.ResumeLayout(false);

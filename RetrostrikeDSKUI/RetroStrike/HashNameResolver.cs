@@ -8,7 +8,6 @@ namespace RetrostrikeDSKUI.RetroStrike
 {
     public class HashNameResolver
     {
-        string HashDictsBaseDirectory;
         public enum eHashDictType
         {
             FileNames,
@@ -20,37 +19,33 @@ namespace RetrostrikeDSKUI.RetroStrike
             FileTypes,
             All
         }
-        public HashNameResolver(string baseDirectory)
+        public HashNameResolver()
         {
-            this.HashDictsBaseDirectory = baseDirectory;
             FileNamesHashDict = new Dictionary<uint, string>();
             TypesHashDict = new Dictionary<uint, string>();
         }
 
         public Dictionary<uint, string> FileNamesHashDict { get; private set; }
         public Dictionary<uint, string> TypesHashDict { get; private set; }
-        public void LoadHashDict(string fileName, eHashDictType hashesType)
+        public void LoadHashDict(Stream xIn, eHashDictType hashesType)
         {
-            using (Stream xIn = File.Open($"{HashDictsBaseDirectory}{fileName}", FileMode.Open, FileAccess.Read, FileShare.Read))
+            StreamReader reader = new StreamReader(xIn);
+            while (!reader.EndOfStream)
             {
-                StreamReader reader = new StreamReader(xIn);
-                while (!reader.EndOfStream)
+                string line = reader.ReadLine();
+                if (line == null || string.IsNullOrEmpty(line) || line.StartsWith("#"))
+                    continue;
+                string textResolve = line.Trim();
+                var hashResolve = Hashing.MakeFNV1A(textResolve);
+                var targetDict = hashesType == eHashDictType.FileNames
+                    ? FileNamesHashDict
+                    : TypesHashDict;
+                if (!targetDict.ContainsKey(hashResolve))
+                    targetDict[hashResolve] = textResolve;
+                else if (targetDict.ContainsKey(hashResolve) && targetDict[hashResolve].ToLower() != textResolve.ToLower())
                 {
-                    string line = reader.ReadLine();
-                    if (line == null || string.IsNullOrEmpty(line) || line.StartsWith("#"))
-                        continue;
-                    string textResolve = line.Trim();
-                    var hashResolve = Hashing.MakeFNV1A(textResolve);
-                    var targetDict = hashesType == eHashDictType.FileNames
-                        ? FileNamesHashDict
-                        : TypesHashDict;
-                    if (!targetDict.ContainsKey(hashResolve))
-                        targetDict[hashResolve] = textResolve;
-                    else if (targetDict.ContainsKey(hashResolve) && targetDict[hashResolve].ToLower() != textResolve.ToLower())
-                    {
-                        var stored = targetDict[hashResolve];
-                        throw new Exception("Hash collision?");
-                    }
+                    var stored = targetDict[hashResolve];
+                    throw new Exception("Hash collision?");
                 }
             }
         }

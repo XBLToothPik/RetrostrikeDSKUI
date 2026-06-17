@@ -17,9 +17,12 @@ using RetrostrikeDSKUI.Application;
 
 using RetrostrikeDSKUI.Core;
 using static System.Net.Mime.MediaTypeNames;
+using ReaLTaiizor.Forms;
+using RetroStrike.VirtualDisk;
+using RetrostrikeDSKUI.RetroStrike;
 namespace RetrostrikeDSKUI.Forms
 {
-    public partial class WindowImport : Form
+    public partial class WindowImport : MaterialForm
     {
         #region Classes
         class ComboBoxItemFileType
@@ -102,13 +105,13 @@ namespace RetrostrikeDSKUI.Forms
         }
         void GetAssetFileTypes()
         {
-            assetTypes = new AssetTypeObj[Globals.HashResolver.TypesHashDict.Count];
+            assetTypes = new AssetTypeObj[RetroStrikeGlobals.HashResolver.TypesHashDict.Count];
             for (int i = 0; i < assetTypes.Length; i++)
             {
                 assetTypes[i] = new AssetTypeObj()
                 {
-                    FriendlyName = Globals.HashResolver.TypesHashDict.ElementAt(i).Value,
-                    Hash = Globals.HashResolver.TypesHashDict.ElementAt(i).Key
+                    FriendlyName = RetroStrikeGlobals.HashResolver.TypesHashDict.ElementAt(i).Value,
+                    Hash = RetroStrikeGlobals.HashResolver.TypesHashDict.ElementAt(i).Key
                 };
             }
         }
@@ -120,7 +123,7 @@ namespace RetrostrikeDSKUI.Forms
             comboBox_AssetType.Items.Clear();
             foreach (var curAsset in assetTypes)
             {
-                ComboBoxItemFileType item = new ComboBoxItemFileType(curAsset.Hash, Globals.HashResolver.ResolveHash(curAsset.Hash, RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes));
+                ComboBoxItemFileType item = new ComboBoxItemFileType(curAsset.Hash, RetroStrikeGlobals.HashResolver.ResolveHash(curAsset.Hash, RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes));
                 comboBox_AssetType.Items.Add(item);
             }
             for (int i = 0; i < comboBox_AssetType.Items.Count; i++)
@@ -144,11 +147,13 @@ namespace RetrostrikeDSKUI.Forms
             //TODO: Work on better error messages (like adding "errors" to CanAddFile and AddFile)
             var targetFileName = System.IO.Path.GetFileNameWithoutExtension(this.TargetImportFile);
             var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
-            if (Globals.ActiveDSK.CanAddFile(targetFileType, targetFileName))
+            if (AppGlobals.ActiveDSK.CanAddFile(targetFileType, targetFileName))
             {
                 Stream xIn = File.Open(TargetImportFile, FileMode.Open, FileAccess.Read);
-                if (Globals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName))
+                DSKFile.RFI newFile = null;
+                if (AppGlobals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName, out newFile))
                 {
+                    newFile.ProcessAsFileType = checkbox_ProcessKnownType.Checked;
                     this.ImportSuccess = true;
                     this.WasFileImported = true;
                     this.Close();

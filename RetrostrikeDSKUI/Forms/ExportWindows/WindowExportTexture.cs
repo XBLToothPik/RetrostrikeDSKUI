@@ -138,8 +138,6 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             this.contextMenuStripExportMipsOptions.Items.Add(option_jpg);
             this.contextMenuStripExportMipsOptions.Items.Add(option_bmp);
             this.contextMenuStripExportMipsOptions.Items.Add(option_png);
-
-
         }
         #endregion
 
@@ -229,8 +227,6 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                     }
                 }
             }
-
-
         }
         #endregion
 
