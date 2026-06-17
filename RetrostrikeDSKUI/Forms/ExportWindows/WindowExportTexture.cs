@@ -211,7 +211,13 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                 string fileType = (string)option.Tag;
                 for (int mip = 0; mip < this.mipsData.Length; mip++)
                 {
-                    var imgf = new ImageMagick.MagickImage(this.mipsData[mip], ImageMagick.MagickFormat.Rgba);
+                    int mipWidth = xboxtexture.Width >> mip;
+                    int mipHeight = xboxtexture.Height >> mip;
+                    var settings = new ImageMagick.PixelReadSettings(
+                        (uint)mipWidth, (uint)mipHeight,
+                        ImageMagick.StorageType.Char,        // 8 bits per channel
+                        ImageMagick.PixelMapping.RGBA);
+                    var imgf = new ImageMagick.MagickImage(this.mipsData[mip], settings);
                     using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
                     {
                         switch (option.Tag as string)

@@ -20,6 +20,7 @@ using static System.Net.Mime.MediaTypeNames;
 using ReaLTaiizor.Forms;
 using RetroStrike.VirtualDisk;
 using RetrostrikeDSKUI.RetroStrike;
+using System.Formats.Tar;
 namespace RetrostrikeDSKUI.Forms
 {
     public partial class WindowImport : MaterialForm
@@ -94,7 +95,7 @@ namespace RetrostrikeDSKUI.Forms
             this._selectedFileType = currentFileTypeSelected;
             GetAssetFileTypes();
             PopulateView();
-
+            checkbox_ProcessKnownType.Checked = true;
         }
         #endregion
 
@@ -134,7 +135,7 @@ namespace RetrostrikeDSKUI.Forms
                     break;
                 }
             }
-            
+
             comboBox_AssetType.EndUpdate();
         }
         #endregion
@@ -142,27 +143,43 @@ namespace RetrostrikeDSKUI.Forms
         #region Button Handlers
         private void button_Import_Click(object sender, EventArgs e)
         {
+            var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
+            var targetFileName = System.IO.Path.GetFileNameWithoutExtension(this.TargetImportFile);
+
+
             //TODO: Work on importing files from here.
             //TODO: Work on Processing known file types for import/replace
             //TODO: Work on better error messages (like adding "errors" to CanAddFile and AddFile)
-            var targetFileName = System.IO.Path.GetFileNameWithoutExtension(this.TargetImportFile);
-            var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
             if (AppGlobals.ActiveDSK.CanAddFile(targetFileType, targetFileName))
             {
-                Stream xIn = File.Open(TargetImportFile, FileMode.Open, FileAccess.Read);
-                DSKFile.RFI newFile = null;
-                if (AppGlobals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName, out newFile))
+                if (checkbox_ProcessKnownType.Checked && DSKFile.SupportedProcessingTypes.ContainsKey(targetFileType))
                 {
-                    newFile.ProcessAsFileType = checkbox_ProcessKnownType.Checked;
-                    this.ImportSuccess = true;
-                    this.WasFileImported = true;
-                    this.Close();
+                    //If it's supported then we'll do as "Next"
                 }
                 else
-                    MessageBox.Show("Uknown Error", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                {
+                    //Otherwise, we'll import it as raw
+                    Stream xIn = File.Open(TargetImportFile, FileMode.Open, FileAccess.Read);
+                    DSKFile.RFI newFile = null;
+                    if (AppGlobals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName, out newFile))
+                    {
+                        this.ImportSuccess = true;
+                        this.WasFileImported = true;
+                        this.Close();
+                    }
+                    else
+                        MessageBox.Show("Uknown Error", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 return;
             }
-            MessageBox.Show("Import Error", "Cannot add file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+            {
+                MessageBox.Show("Import Error", "Cannot add file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        void SetupImportedFileData()
+        {
+
         }
         private void button_Cancel_Click(object sender, EventArgs e)
         {
@@ -171,6 +188,25 @@ namespace RetrostrikeDSKUI.Forms
         }
         #endregion
 
+        private void checkbox_ProcessKnownType_CheckedChanged(object sender, EventArgs e)
+        {
+            var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
 
+            if (checkbox_ProcessKnownType.Checked && DSKFile.SupportedProcessingTypes.ContainsKey(targetFileType))
+            {
+                //If it's supported then we'll do as "Next";
+                button_Import.Text = "Next..";
+            }
+            else
+                button_Import.Text = "Import";
+        }
+
+        private void comboBox_AssetType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var box = (ComboBox)sender;
+            var selIndex = box.SelectedIndex;
+            ComboBoxItemFileType item = (ComboBoxItemFileType)box.Items[selIndex];
+            checkbox_ProcessKnownType.Checked = DSKFile.SupportedProcessingTypes.ContainsKey(item.Hash);
+        }
     }
 }

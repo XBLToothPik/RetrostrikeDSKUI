@@ -1,4 +1,5 @@
 ﻿using ImageMagick;
+using RetroStrike.Platform.XBox;
 using RetroStrike.Utils;
 using RetrostrikeDSKUI.Application;
 using RetrostrikeDSKUI.RetroStrike;
@@ -48,6 +49,7 @@ namespace RetroStrike.VirtualDisk
             public RFI(DSKFile ownerDSKFile)
             {
                 this.OwnerDSKFile = ownerDSKFile;
+                this.CustomData = new Dictionary<string, object>();
             }
 
             public uint NameHashOriginal;
@@ -67,6 +69,7 @@ namespace RetroStrike.VirtualDisk
             public bool IsNewImportedFileOrReplaced => IsBeingReplaced || IsNewImportedFile;
 
             public bool ProcessAsFileType;
+            public Dictionary<string, object> CustomData;
 
             public Stream NewIncomingFileStream;
             public string NewIncomingFileName;
@@ -102,7 +105,7 @@ namespace RetroStrike.VirtualDisk
         #region Fields
         Stream _mainFileStream;
         BinaryReader mainReader;
-        Dictionary<uint, string> supportedImportTypes = new Dictionary<uint, string>
+        public static Dictionary<uint, string> SupportedProcessingTypes { get; } = new Dictionary<uint, string>
         {
             {  Hashing.MakeFNV1A("texture"), "texture" }
         };
@@ -253,7 +256,7 @@ namespace RetroStrike.VirtualDisk
         #region Processors
         void ProcessNewRFIAsType(RFI targetRFI)
         {
-            switch (supportedImportTypes[targetRFI.GetActiveTypeHash()])
+            switch (SupportedProcessingTypes[targetRFI.GetActiveTypeHash()])
             {
                 case "texture":
                     ProcessNewRFIAsTexture(targetRFI);
@@ -266,13 +269,13 @@ namespace RetroStrike.VirtualDisk
             //Though we should really do most of this in the RedTextureXBox (or other platform) 
             //      !! dont forget about doing mips
             //TODO: Design the Import Texture Window
-            MagickImage img = new MagickImage(targetRFI.NewIncomingFileStream, MagickFormat.Rgba);
-            
-            //byte[] rgba = new byte[image.Width * image.Height * 4];
-            //image.CopyPixelDataTo(rgba);
-            //
-            //int width = image.Width;
-            //int height = image.Height;
+
+            int numMips = (int)targetRFI.CustomData["tex_maxmaps"];
+            int depth = (int)targetRFI.CustomData["tex_depth"];
+            int version = (int)targetRFI.CustomData["tex_formatversion"];
+            RedTextureXBox.eXBoxD3DFormat d3dFormat = (RedTextureXBox.eXBoxD3DFormat)targetRFI.CustomData["tex_d3dformat"];
+
+            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, numMips, depth, version, RedTextureXBox.eXBoxD3DFormat.XBOXFMT_DXT1, RedTextureXBox.eRedTextureType.TEXTURE);
         }
         #endregion
 

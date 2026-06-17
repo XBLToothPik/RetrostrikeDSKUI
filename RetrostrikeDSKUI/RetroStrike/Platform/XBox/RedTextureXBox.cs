@@ -1,4 +1,5 @@
-﻿using RetroStrike.Pbl;
+﻿using ImageMagick;
+using RetroStrike.Pbl;
 using Squish;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,9 @@ namespace RetroStrike.Platform.XBox
     public class RedTextureXBox
     {
         public bool WasCreatedFromPBLChunk { get; private set; }
+        public bool WasCreatedFromImage { get; private set; }
         public PblChunk PblTexChunk { get; private set; }
+        public Stream ImageStream { get; private set; }
         public enum eRedTextureType : short
         {
             TEXTURE = 1,
@@ -185,6 +188,30 @@ namespace RetroStrike.Platform.XBox
             errors = "Texture was not created from a PBLChunk.";
             return false;
         }
+        public static RedTextureXBox CreateFromImage(Stream xIn, int numMips, int depth, int texFormatVersion, eXBoxD3DFormat texFormat, eRedTextureType redTexType)
+        {
+            RedTextureXBox toRet = new RedTextureXBox();
+            toRet.WasCreatedFromImage = true;
+
+            MagickImage newImg = new MagickImage(xIn);
+
+            for (int mip = 0; mip < numMips; mip++)
+            {
+                int mipWidth = (int)(newImg.Width >> mip);
+                int mipHeight = (int)(newImg.Height >> mip);
+                var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
+                //Resize img to next mip size ahead of the next loop iteration
+                if (mip < numMips)
+                {
+                    uint nextMipWidth = (uint)((mipWidth) >> mip);
+                    uint nextMipHeight = (uint)((mipHeight >> mip));
+                    newImg.Resize(nextMipWidth, nextMipHeight);
+                }
+            }
+
+            return toRet;
+
+        }
         static uint MortonExpand(uint v)
         {
             v = (v | (v << 8)) & 0x00ff00ff;
@@ -193,7 +220,6 @@ namespace RetroStrike.Platform.XBox
             v = (v | (v << 1)) & 0x55555555;
             return v;
         }
-
         static void UnswizzleTexture(byte[] src, byte[] dst, int W, int H, int bpp, int dstPitch)
         {
             int minDim = Math.Min(W, H);
@@ -229,30 +255,7 @@ namespace RetroStrike.Platform.XBox
                 }
             }
         }
-        void SaveRgba(byte[] rgba, int width, int height, string path)
-        {
-            // GDI+ uses BGRA byte order for 32bppArgb, so swap R and B.
-            byte[] bgra = new byte[rgba.Length];
-            for (int i = 0; i < rgba.Length; i += 4)
-            {
-                bgra[i + 0] = rgba[i + 2]; // B
-                bgra[i + 1] = rgba[i + 1]; // G
-                bgra[i + 2] = rgba[i + 0]; // R
-                bgra[i + 3] = rgba[i + 3]; // A
-            }
 
-            using var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            var rect = new Rectangle(0, 0, width, height);
-            var data = bmp.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-
-            // Copy row by row in case stride != width*4.
-            int rowBytes = width * 4;
-            for (int y = 0; y < height; y++)
-                Marshal.Copy(bgra, y * rowBytes, data.Scan0 + y * data.Stride, rowBytes);
-
-            bmp.UnlockBits(data);
-            bmp.Save(path, ImageFormat.Png);
-        }
         public bool FormatIsDXT(uint textureFormat)
         {
             return textureFormat == 0x0C || textureFormat == 0x0E || textureFormat == 0x0F;

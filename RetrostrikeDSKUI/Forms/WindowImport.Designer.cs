@@ -91,6 +91,7 @@
             checkbox_ProcessKnownType.TabIndex = 5;
             checkbox_ProcessKnownType.Text = "Process As Known Type";
             checkbox_ProcessKnownType.UseVisualStyleBackColor = true;
+            checkbox_ProcessKnownType.CheckedChanged += checkbox_ProcessKnownType_CheckedChanged;
             // 
             // comboBox_AssetType
             // 
@@ -101,6 +102,7 @@
             comboBox_AssetType.Name = "comboBox_AssetType";
             comboBox_AssetType.Size = new Size(321, 23);
             comboBox_AssetType.TabIndex = 4;
+            comboBox_AssetType.SelectedIndexChanged += comboBox_AssetType_SelectedIndexChanged;
             // 
             // label_Description_ImportFileType
             // 
@@ -155,7 +157,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(345, 221);
+            ClientSize = new Size(377, 299);
             Controls.Add(groupBox_Details);
             Controls.Add(button_Cancel);
             Controls.Add(button_Import);
