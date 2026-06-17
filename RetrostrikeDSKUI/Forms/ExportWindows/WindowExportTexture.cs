@@ -2,8 +2,6 @@
 using RetroStrike.Pbl;
 using RetroStrike.Platform.XBox;
 using RetrostrikeDSKUI.Core;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -168,20 +166,27 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             {
                 using (Stream xOut = File.Open(SFD.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
                 {
-                    var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(this.mipsData[0], xboxtexture.Width, xboxtexture.Height);
+                    int mipWidth = xboxtexture.Width;
+                    int mipHeight = xboxtexture.Height;
+                    var settings = new ImageMagick.PixelReadSettings(
+                        (uint)mipWidth, (uint)mipHeight,
+                        ImageMagick.StorageType.Char,        // 8 bits per channel
+                        ImageMagick.PixelMapping.RGBA);
+
+                    var img = new ImageMagick.MagickImage(this.mipsData[0], settings);
                     switch (SFD.FilterIndex)
                     {
                         case 0: //TGA
-                            img.SaveAsTga(xOut);
+                            img.Write(xOut, ImageMagick.MagickFormat.Tga);
                             break;
                         case 1: //JPG
-                            img.SaveAsJpeg(xOut);
+                            img.Write(xOut, ImageMagick.MagickFormat.Jpg);
                             break;
                         case 2: //BMP
-                            img.SaveAsBmp(xOut);
+                            img.Write(xOut, ImageMagick.MagickFormat.Bmp);
                             break;
                         case 3: //PNG
-                            img.SaveAsPng(xOut);
+                            img.Write(xOut, ImageMagick.MagickFormat.Png);
                             break;
                     }
                 }
@@ -206,22 +211,22 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                 string fileType = (string)option.Tag;
                 for (int mip = 0; mip < this.mipsData.Length; mip++)
                 {
-                    var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(this.mipsData[mip], xboxtexture.Width >> mip, xboxtexture.Height >> mip);
+                    var imgf = new ImageMagick.MagickImage(this.mipsData[mip], ImageMagick.MagickFormat.Rgba);
                     using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
                     {
                         switch (option.Tag as string)
                         {
                             case "tga":
-                                img.SaveAsTga(xOut);
+                                imgf.Write(xOut, ImageMagick.MagickFormat.Tga);
                                 break;
                             case "jpg":
-                                img.SaveAsJpeg(xOut);
+                                imgf.Write(xOut, ImageMagick.MagickFormat.Jpg);
                                 break;
                             case "bmp":
-                                img.SaveAsBmp(xOut);
+                                imgf.Write(xOut, ImageMagick.MagickFormat.Bmp);
                                 break;
                             case "png":
-                                img.SaveAsPng(xOut);
+                                imgf.Write(xOut, ImageMagick.MagickFormat.Png);
                                 break;
                         }
                     }

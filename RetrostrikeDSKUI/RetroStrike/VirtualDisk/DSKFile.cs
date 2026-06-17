@@ -1,7 +1,7 @@
-﻿using RetroStrike.Utils;
+﻿using ImageMagick;
+using RetroStrike.Utils;
 using RetrostrikeDSKUI.Application;
 using RetrostrikeDSKUI.RetroStrike;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -102,6 +102,10 @@ namespace RetroStrike.VirtualDisk
         #region Fields
         Stream _mainFileStream;
         BinaryReader mainReader;
+        Dictionary<uint, string> supportedImportTypes = new Dictionary<uint, string>
+        {
+            {  Hashing.MakeFNV1A("texture"), "texture" }
+        };
         #endregion
 
         public DSKFile(Stream xIn)
@@ -199,7 +203,7 @@ namespace RetroStrike.VirtualDisk
             {
                 foreach (var file in pair.Value)
                 {
-                    //Also, if it's being replaced we can prompt the user
+                    //TODO: Also, if it's being replaced we can prompt the user
                     //  to ask if they want to replace the name and type too,
                     if (file.IsBeingRemoved)
                         continue;
@@ -232,10 +236,8 @@ namespace RetroStrike.VirtualDisk
                 }
             }
 
-
-            //Maybe add grid writing?  I'm still not entirely sure what the GREF (Grid Reference Files) are used for to be honest.
+            //We're not going to use GREF (Grid Reference Files) in writing.  They are not used.
             int gridWriteOffset = 0;
-
 
             //Add sector padding
             if (numFilesWritten > 0)
@@ -251,10 +253,6 @@ namespace RetroStrike.VirtualDisk
         #region Processors
         void ProcessNewRFIAsType(RFI targetRFI)
         {
-            Dictionary<uint, string> supportedImportTypes = new Dictionary<uint, string>
-            {
-                {  Hashing.MakeFNV1A("texture"), "texture" }
-            };
             switch (supportedImportTypes[targetRFI.GetActiveTypeHash()])
             {
                 case "texture":
@@ -265,16 +263,16 @@ namespace RetroStrike.VirtualDisk
         void ProcessNewRFIAsTexture(RFI targetRFI)
         {
             //The targetRFI will be a new imported file.  So in this case it should be an image (png, tga..etc..)
-            //Though we should really do most of this in the RedTextureXBox (or other platform) and only
-            //  use this function to set the data.
+            //Though we should really do most of this in the RedTextureXBox (or other platform) 
+            //      !! dont forget about doing mips
             //TODO: Design the Import Texture Window
-            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(targetRFI.NewIncomingFileStream);
-
-            byte[] rgba = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(rgba);
-
-            int width = image.Width;
-            int height = image.Height;
+            MagickImage img = new MagickImage(targetRFI.NewIncomingFileStream, MagickFormat.Rgba);
+            
+            //byte[] rgba = new byte[image.Width * image.Height * 4];
+            //image.CopyPixelDataTo(rgba);
+            //
+            //int width = image.Width;
+            //int height = image.Height;
         }
         #endregion
 
