@@ -32,8 +32,8 @@
             pictureboxMipsPreview = new PictureBox();
             groupBoxMipsPreview = new GroupBox();
             labelMipsPreviewIndex = new ReaLTaiizor.Controls.MaterialLabel();
-            mipsPreviewGoRight = new Button();
-            mipsPreviewGoLeft = new Button();
+            buttonMipsPreviewGoRight = new Button();
+            buttonMipsPreviewGoLeft = new Button();
             labelMips = new ReaLTaiizor.Controls.MaterialLabel();
             labelWidthDesc = new Label();
             labelHeightDesc = new Label();
@@ -61,12 +61,12 @@
             // 
             mipsPreviewTitle.AutoSize = true;
             mipsPreviewTitle.Depth = 0;
-            mipsPreviewTitle.Font = new Font("Roboto Medium", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            mipsPreviewTitle.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.H6;
-            mipsPreviewTitle.Location = new Point(37, 15);
+            mipsPreviewTitle.Font = new Font("Roboto", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
+            mipsPreviewTitle.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Subtitle1;
+            mipsPreviewTitle.Location = new Point(48, 12);
             mipsPreviewTitle.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             mipsPreviewTitle.Name = "mipsPreviewTitle";
-            mipsPreviewTitle.Size = new Size(45, 24);
+            mipsPreviewTitle.Size = new Size(36, 19);
             mipsPreviewTitle.TabIndex = 2;
             mipsPreviewTitle.Text = "Mips";
             // 
@@ -74,9 +74,10 @@
             // 
             pictureboxMipsPreview.BackColor = Color.Transparent;
             pictureboxMipsPreview.BorderStyle = BorderStyle.FixedSingle;
-            pictureboxMipsPreview.Location = new Point(28, 42);
+            pictureboxMipsPreview.Location = new Point(20, 33);
             pictureboxMipsPreview.Name = "pictureboxMipsPreview";
-            pictureboxMipsPreview.Size = new Size(64, 64);
+            pictureboxMipsPreview.Size = new Size(84, 84);
+            pictureboxMipsPreview.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureboxMipsPreview.TabIndex = 3;
             pictureboxMipsPreview.TabStop = false;
             // 
@@ -84,13 +85,13 @@
             // 
             groupBoxMipsPreview.BackColor = Color.Transparent;
             groupBoxMipsPreview.Controls.Add(labelMipsPreviewIndex);
-            groupBoxMipsPreview.Controls.Add(mipsPreviewGoRight);
-            groupBoxMipsPreview.Controls.Add(mipsPreviewGoLeft);
+            groupBoxMipsPreview.Controls.Add(buttonMipsPreviewGoRight);
+            groupBoxMipsPreview.Controls.Add(buttonMipsPreviewGoLeft);
             groupBoxMipsPreview.Controls.Add(mipsPreviewTitle);
             groupBoxMipsPreview.Controls.Add(pictureboxMipsPreview);
             groupBoxMipsPreview.Location = new Point(210, 35);
             groupBoxMipsPreview.Name = "groupBoxMipsPreview";
-            groupBoxMipsPreview.Size = new Size(120, 138);
+            groupBoxMipsPreview.Size = new Size(124, 139);
             groupBoxMipsPreview.TabIndex = 7;
             groupBoxMipsPreview.TabStop = false;
             // 
@@ -98,33 +99,35 @@
             // 
             labelMipsPreviewIndex.Depth = 0;
             labelMipsPreviewIndex.Dock = DockStyle.Bottom;
-            labelMipsPreviewIndex.Font = new Font("Roboto Medium", 14F, FontStyle.Bold, GraphicsUnit.Pixel);
-            labelMipsPreviewIndex.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Subtitle2;
-            labelMipsPreviewIndex.Location = new Point(3, 109);
+            labelMipsPreviewIndex.Font = new Font("Roboto", 12F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelMipsPreviewIndex.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Caption;
+            labelMipsPreviewIndex.Location = new Point(3, 119);
             labelMipsPreviewIndex.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelMipsPreviewIndex.Name = "labelMipsPreviewIndex";
-            labelMipsPreviewIndex.Size = new Size(114, 26);
+            labelMipsPreviewIndex.Size = new Size(118, 17);
             labelMipsPreviewIndex.TabIndex = 10;
-            labelMipsPreviewIndex.Text = "0 / 0";
+            labelMipsPreviewIndex.Text = "0 / 0 (512x512)";
             labelMipsPreviewIndex.TextAlign = ContentAlignment.TopCenter;
             // 
-            // mipsPreviewGoRight
+            // buttonMipsPreviewGoRight
             // 
-            mipsPreviewGoRight.Location = new Point(92, 41);
-            mipsPreviewGoRight.Name = "mipsPreviewGoRight";
-            mipsPreviewGoRight.Size = new Size(22, 66);
-            mipsPreviewGoRight.TabIndex = 9;
-            mipsPreviewGoRight.Text = ">";
-            mipsPreviewGoRight.UseVisualStyleBackColor = true;
+            buttonMipsPreviewGoRight.Location = new Point(104, 32);
+            buttonMipsPreviewGoRight.Name = "buttonMipsPreviewGoRight";
+            buttonMipsPreviewGoRight.Size = new Size(16, 86);
+            buttonMipsPreviewGoRight.TabIndex = 9;
+            buttonMipsPreviewGoRight.Text = ">";
+            buttonMipsPreviewGoRight.UseVisualStyleBackColor = true;
+            buttonMipsPreviewGoRight.Click += buttonMipsPreviewGoRight_Click;
             // 
-            // mipsPreviewGoLeft
+            // buttonMipsPreviewGoLeft
             // 
-            mipsPreviewGoLeft.Location = new Point(6, 41);
-            mipsPreviewGoLeft.Name = "mipsPreviewGoLeft";
-            mipsPreviewGoLeft.Size = new Size(22, 66);
-            mipsPreviewGoLeft.TabIndex = 8;
-            mipsPreviewGoLeft.Text = "<";
-            mipsPreviewGoLeft.UseVisualStyleBackColor = true;
+            buttonMipsPreviewGoLeft.Location = new Point(4, 32);
+            buttonMipsPreviewGoLeft.Name = "buttonMipsPreviewGoLeft";
+            buttonMipsPreviewGoLeft.Size = new Size(16, 86);
+            buttonMipsPreviewGoLeft.TabIndex = 8;
+            buttonMipsPreviewGoLeft.Text = "<";
+            buttonMipsPreviewGoLeft.UseVisualStyleBackColor = true;
+            buttonMipsPreviewGoLeft.Click += buttonMipsPreviewGoLeft_Click;
             // 
             // labelMips
             // 
@@ -255,18 +258,19 @@
             // 
             // panelBottom
             // 
+            panelBottom.BorderStyle = BorderStyle.FixedSingle;
             panelBottom.Controls.Add(buttonExportImage);
             panelBottom.Controls.Add(buttonCancel);
             panelBottom.Controls.Add(buttonExportMips);
             panelBottom.Dock = DockStyle.Bottom;
             panelBottom.Location = new Point(3, 232);
             panelBottom.Name = "panelBottom";
-            panelBottom.Size = new Size(328, 29);
+            panelBottom.Size = new Size(332, 29);
             panelBottom.TabIndex = 25;
             // 
             // buttonExportImage
             // 
-            buttonExportImage.Location = new Point(3, 3);
+            buttonExportImage.Location = new Point(3, 2);
             buttonExportImage.Name = "buttonExportImage";
             buttonExportImage.Size = new Size(108, 23);
             buttonExportImage.TabIndex = 2;
@@ -275,7 +279,7 @@
             // 
             // buttonCancel
             // 
-            buttonCancel.Location = new Point(265, 3);
+            buttonCancel.Location = new Point(265, 2);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(59, 23);
             buttonCancel.TabIndex = 1;
@@ -284,7 +288,7 @@
             // 
             // buttonExportMips
             // 
-            buttonExportMips.Location = new Point(117, 3);
+            buttonExportMips.Location = new Point(117, 2);
             buttonExportMips.Name = "buttonExportMips";
             buttonExportMips.Size = new Size(108, 23);
             buttonExportMips.TabIndex = 0;
@@ -315,7 +319,8 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(334, 264);
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            ClientSize = new Size(338, 264);
             Controls.Add(labelMipsDesc);
             Controls.Add(labelDepthDesc);
             Controls.Add(panelBottom);
@@ -335,11 +340,12 @@
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
             MaximizeBox = false;
+            MaximumSize = new Size(338, 264);
             MinimizeBox = false;
             Name = "WindowExportTexture";
             Padding = new Padding(3, 24, 3, 3);
+            Sizable = false;
             Text = "Export Texture - N/A";
-            Load += WindowExportTexture_Load;
             ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).EndInit();
             groupBoxMipsPreview.ResumeLayout(false);
             groupBoxMipsPreview.PerformLayout();
@@ -352,8 +358,8 @@
         private ReaLTaiizor.Controls.MaterialLabel mipsPreviewTitle;
         private PictureBox pictureboxMipsPreview;
         private GroupBox groupBoxMipsPreview;
-        private Button mipsPreviewGoLeft;
-        private Button mipsPreviewGoRight;
+        private Button buttonMipsPreviewGoLeft;
+        private Button buttonMipsPreviewGoRight;
         private ReaLTaiizor.Controls.MaterialLabel labelMips;
         private ReaLTaiizor.Controls.MaterialLabel labelMipsPreviewIndex;
         private Label labelWidthDesc;

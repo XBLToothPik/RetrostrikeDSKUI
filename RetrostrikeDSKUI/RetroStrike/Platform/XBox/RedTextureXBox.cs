@@ -88,8 +88,9 @@ namespace RetroStrike.Platform.XBox
                     return 0;
             }
         }
-        public bool Exp(Stream xOut, out string errors)
+        public bool ExportMips(ref byte[][] mips, out int numMipsExported, out string errors)
         {
+            numMipsExported = 0;
             if (WasCreatedFromPBLChunk)
             {
                 //
@@ -100,10 +101,13 @@ namespace RetroStrike.Platform.XBox
                 bool isDXT = FormatIsDXT((uint)TextureFormat); //TODO: Check platform because DXT is only available for XBox files
                 bool isSwizzled = FormatIsSwizzled((uint)TextureFormat);
                 int bpp = FormatBPP((uint)TextureFormat);
+                int numMips = (MaxMaps > 0) ? MaxMaps : 1;
+
                 //If it's a CubeMap then the number of faces is DataSize / 6 and we have to iterate over that as their own textures kinda
                 if (RedTextureType == eRedTextureType.TEXTURE)
                 {
-                    int numMips = (MaxMaps > 0) ? MaxMaps : 1;
+                    mips = new byte[numMips][];
+
                     if (isDXT)
                     {
                         int blockBytes = FormatGetBlockBytes((uint)TextureFormat);
@@ -123,9 +127,10 @@ namespace RetroStrike.Platform.XBox
                                 int destPos = row * rowSize;
                                 Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
                             }
-                            sourcePos += rows * rowSize;
                             var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
-                            SaveRgba(mipDec, mipWidth, mipHeight, $"testimg_mip{mip}.bmp"); //TODO: don't save to a file here obviously.
+                            mips[mip] = mipDec;
+                            numMipsExported++;
+                            sourcePos += rows * rowSize;
                         }
                     }
                     else
@@ -158,7 +163,8 @@ namespace RetroStrike.Platform.XBox
                                     Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
                                 }
                             }
-                            SaveRgba(mipData, mipWidth, mipHeight, $"testimg_nondxt_mip{mip}.bmp"); //TODO: don't save to a file here obviously.
+                            mips[mip] = mipData;
+                            numMipsExported++;
                             sourcePos += mipSize;
                         }
                     }
@@ -170,6 +176,11 @@ namespace RetroStrike.Platform.XBox
                     
                 
                 }
+            }
+            if (numMipsExported > 0)
+            {
+                errors = string.Empty;
+                return true;
             }
             errors = "Texture was not created from a PBLChunk.";
             return false;
