@@ -274,8 +274,13 @@ namespace RetroStrike.VirtualDisk
             int depth = (int)targetRFI.CustomData["tex_depth"];
             int version = (int)targetRFI.CustomData["tex_formatversion"];
             RedTextureXBox.eXBoxD3DFormat d3dFormat = (RedTextureXBox.eXBoxD3DFormat)targetRFI.CustomData["tex_d3dformat"];
+            RedTextureXBox.eRedTextureType texType = (RedTextureXBox.eRedTextureType)targetRFI.CustomData["tex_type"];
 
-            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, numMips, depth, version, RedTextureXBox.eXBoxD3DFormat.XBOXFMT_DXT1, RedTextureXBox.eRedTextureType.TEXTURE);
+
+            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, ref numMips, depth, version, d3dFormat, texType);
+            targetRFI.CustomData["tex_maxmaps"] = numMips;
+
+
         }
         #endregion
 
@@ -380,9 +385,9 @@ namespace RetroStrike.VirtualDisk
             errors = string.Empty;
             return true;
         }
-        public bool AddFile(uint typeHash, Stream xIn, string fileName, out RFI newFile)
+        public bool AddFile(uint typeHash, Stream xIn, string fileName, out RFI newFile, out string failReason)
         {
-            if (CanAddFile(typeHash, fileName))
+            if (CanAddFile(typeHash, fileName, out failReason))
             {
                 newFile = new RFI(this);
                 newFile.IsNewImportedFile = true;
@@ -397,9 +402,9 @@ namespace RetroStrike.VirtualDisk
             newFile = null;
             return false;
         }
-        public bool AddFile(string typeName, Stream xin, string fileName, out RFI newRFI)
+        public bool AddFile(string typeName, Stream xin, string fileName, out RFI newRFI, out string addFailReason)
         {
-            return AddFile(Hashing.MakeFNV1A(typeName), xin, fileName, out newRFI);
+            return AddFile(Hashing.MakeFNV1A(typeName), xin, fileName, out newRFI, out addFailReason);
         }
         public bool CancelImportOfFile(RFI targetRFI, out string errors)
         {
@@ -487,19 +492,27 @@ namespace RetroStrike.VirtualDisk
         {
             return DoesTypeExist(Hashing.MakeFNV1A(typeName));
         }
-        public bool CanAddFile(uint typeHash, uint fileNameHash)
+        public bool CanAddFile(uint typeHash, uint fileNameHash, out string reason)
         {
             bool toRet = true;
             if (Files.ContainsKey(typeHash))
             {
                 if (Files[typeHash].Count(item => item.NameHashOriginal == fileNameHash) > 0)
+                {
                     toRet = false;
+                    reason = "A file with that name already exists in that type";
+                }
+                else
+                    reason = string.Empty;
             }
+            else
+                reason = "Type does not exist";
+            
             return toRet;
         }
-        public bool CanAddFile(uint typeHash, string fileName)
+        public bool CanAddFile(uint typeHash, string fileName, out string reason)
         {
-            return CanAddFile(typeHash, Hashing.MakeFNV1A(fileName));
+            return CanAddFile(typeHash, Hashing.MakeFNV1A(fileName), out reason);
         }
 
         void ValidateDSKDict()

@@ -15,7 +15,7 @@ using static RetroStrike.VirtualDisk.DSKFile;
 
 namespace RetrostrikeDSKUI.Forms.ExportWindows
 {
-    public partial class WindowExportTexture : MaterialForm, IExportWindow
+    public partial class WindowExportTexture : MaterialForm, ITypeExportWindow
     {
         #region Const
         public const string WindowTitle = "Export Texture";
@@ -24,7 +24,6 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         #region Fields
         bool _exportSuccess = false;
         int mipsPreviewActualIndex = 0;
-        byte[][] mipsData;
 
         RFI _targetRFI;
         PblFile _targetPblFile;
@@ -40,26 +39,40 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             CreateMipsExportOptionsContextMenuStrip();
 
             this._targetRFI = targetRFI;
-            ((IExportWindow)this).LoadData();
-            ((IExportWindow)this).LoadDataIntoView();
+            ((ITypeExportWindow)this).LoadData();
+            ((ITypeExportWindow)this).LoadDataIntoView();
         }
 
 
         #endregion
 
-        #region Interface
-        bool IExportWindow.ExportSucess => _exportSuccess;
+        #region Interface Properties
+        bool ITypeExportWindow.ExportSucess => _exportSuccess;
+        #endregion
 
-        void IExportWindow.LoadData()
+        #region Interface Methods
+        void ITypeExportWindow.LoadData()
         {
             this._targetPblFile = PblFile.CreateFromRFI(this._targetRFI, true);
             xboxtexture = RedTextureXBox.CreateFromPBLChunk(_targetPblFile.RootChunk.GetChildByID("tex_"));
             int numMips = -1;
             string mipsExportError = string.Empty;
-            xboxtexture.ExportMips(ref this.mipsData, out numMips, out mipsExportError);
+            xboxtexture.ExportMips(out numMips, out mipsExportError);
+            if (numMips <= 0)
+            {
+                MessageBox.Show($"Mips Count Was {numMips}", "Export Error - Mips Count Too Low", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this._exportSuccess = false;
+                this.Close();
+            }
+            if (!string.IsNullOrEmpty(mipsExportError))
+            {
+                MessageBox.Show($"Mips Export Error:\r\n{mipsExportError}", "Mips Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this._exportSuccess = false;
+                this.Close();
+            }
         }
 
-        void IExportWindow.LoadDataIntoView()
+        void ITypeExportWindow.LoadDataIntoView()
         {
             SetWindowTitle(xboxtexture.TextureName);
             labelWidth.Text = xboxtexture.Width.ToString();
@@ -83,7 +96,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             int mipWidth = xboxtexture.Width >> mipsPreviewActualIndex;
             int mipHeight = xboxtexture.Height >> mipsPreviewActualIndex;
             SetMipsPreviewIndexLabelText(mipsPreviewActualIndex, xboxtexture.MaxMaps, mipWidth, mipHeight);
-            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.mipsData[mipsPreviewActualIndex], mipWidth, mipHeight);
+            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.xboxtexture.MipsData[mipsPreviewActualIndex], mipWidth, mipHeight);
             if (mipWidth > this.pictureboxMipsPreview.Size.Width || mipHeight > this.pictureboxMipsPreview.Height)
                 this.pictureboxMipsPreview.SizeMode = PictureBoxSizeMode.StretchImage;
             else
@@ -173,7 +186,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                         ImageMagick.StorageType.Char,        // 8 bits per channel
                         ImageMagick.PixelMapping.RGBA);
 
-                    var img = new ImageMagick.MagickImage(this.mipsData[0], settings);
+                    var img = new ImageMagick.MagickImage(this.xboxtexture.MipsData[0], settings);
                     switch (SFD.FilterIndex)
                     {
                         case 0: //TGA
@@ -209,7 +222,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             {
                 var targetDirectory = FBD.SelectedPath;
                 string fileType = (string)option.Tag;
-                for (int mip = 0; mip < this.mipsData.Length; mip++)
+                for (int mip = 0; mip < this.xboxtexture.MipsData.Length; mip++)
                 {
                     int mipWidth = xboxtexture.Width >> mip;
                     int mipHeight = xboxtexture.Height >> mip;
@@ -217,7 +230,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                         (uint)mipWidth, (uint)mipHeight,
                         ImageMagick.StorageType.Char,        // 8 bits per channel
                         ImageMagick.PixelMapping.RGBA);
-                    var imgf = new ImageMagick.MagickImage(this.mipsData[mip], settings);
+                    var imgf = new ImageMagick.MagickImage(this.xboxtexture.MipsData[mip], settings);
                     using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
                     {
                         switch (option.Tag as string)

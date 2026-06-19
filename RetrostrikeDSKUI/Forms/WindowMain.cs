@@ -8,6 +8,7 @@ using RetroStrike.VirtualDisk;
 using RetrostrikeDSKUI.Application;
 using RetrostrikeDSKUI.Core;
 using RetrostrikeDSKUI.Forms;
+using RetrostrikeDSKUI.Forms.ImportWindows;
 using RetrostrikeDSKUI.Forms.ExportWindows;
 using RetrostrikeDSKUI.RetroStrike;
 using System.Diagnostics;
@@ -147,8 +148,10 @@ namespace RetrostrikeDSKUI
             OFD.Multiselect = false;
             if (OFD.ShowDialog() == DialogResult.OK)
             {
+                RetrostrikeDSKUI.Forms.ImportWindows.WindowImport x;
                 WindowImport window = new WindowImport(this.GetSelectedViewFileType(), OFD.FileName);
                 window.ShowDialog();
+                
                 if (window.ImportSuccess && window.WasFileImported)
                 {
 
@@ -192,10 +195,11 @@ namespace RetrostrikeDSKUI
                     throw new NotImplementedException();
                 if (!ExportHelpers.IsTypeExportSupported(filesToExtract[0].GetActiveTypeHash()))
                     return;
+                //TODO: Plugins for custom export libraries and custom export forms.
                 var exportWindowType = ExportHelpers.GetExportFormForSupportedType(filesToExtract[0].GetActiveTypeHash());
                 var exportWindow = (Form)Activator.CreateInstance(exportWindowType, filesToExtract[0]);
                 exportWindow.ShowDialog();
-                if (((IExportWindow)exportWindow).ExportSucess)
+                if (((ITypeExportWindow)exportWindow).ExportSucess)
                 {
                     Debug.WriteLine("success");
                 }
@@ -203,30 +207,6 @@ namespace RetrostrikeDSKUI
                 {
                     Debug.WriteLine("fail");
                 }
-
-                ///
-                /// CONTINUE HERE
-                /// TODO: Furnish the WindowExportTexture window and make it work.
-                ///
-                ///
-
-
-                //MemoryStream xMem = new MemoryStream();
-                //Globals.ActiveDSK.CopyRFITo(filesToExtract[0], xMem);
-                //xMem.Seek(0, SeekOrigin.Begin);
-                //PblFile testPBL = new PblFile(xMem);
-                //testPBL.Read();
-                //
-                //PblChunk texChunk = testPBL.RootChunk.GetChildByID("tex_");
-                //PblChunk nameChunk = texChunk.GetChildByID("NAME");
-                //PblChunk bodyChunk = texChunk.GetChildByID("BODY");
-                //string nameInChunk = nameChunk.GetDataAsString(Encoding.ASCII);
-                //
-                //RedTextureXBox texture = RedTextureXBox.CreateFromPBLChunk(texChunk);
-                //string errors = string.Empty;
-                //Stream xOut = File.Open("testdata.dat", FileMode.OpenOrCreate);
-                //texture.Exp(xOut, out errors);
-                //xOut.Close();
             }
         }
         private void FileOptionsContextMenu_Replace_Click(object sender, EventArgs e)

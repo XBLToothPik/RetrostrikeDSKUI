@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RetrostrikeDSKUI.Forms.ExportWindows
 {
-    public interface IExportWindow
+    public interface ITypeExportWindow
     {
         public bool ExportSucess { get; }
         void LoadData();

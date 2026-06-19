@@ -1,4 +1,4 @@
-﻿namespace RetrostrikeDSKUI.Forms
+﻿namespace RetrostrikeDSKUI.Forms.ImportWindows
 {
     partial class WindowImport
     {
@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            button_Import = new Button();
             groupBox_Details = new GroupBox();
             linkLabel1 = new LinkLabel();
             checkbox_ProcessKnownType = new CheckBox();
@@ -37,19 +36,12 @@
             label_Description_ImportFileName = new Label();
             button_SelectImportFile = new Button();
             textbox_ImportFileName = new TextBox();
-            button_Cancel = new Button();
+            buttonImport = new ReaLTaiizor.Controls.PoisonButton();
+            buttonCancel = new ReaLTaiizor.Controls.PoisonButton();
+            panel1 = new Panel();
             groupBox_Details.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
-            // 
-            // button_Import
-            // 
-            button_Import.Location = new Point(6, 193);
-            button_Import.Name = "button_Import";
-            button_Import.Size = new Size(252, 23);
-            button_Import.TabIndex = 1;
-            button_Import.Text = "Import";
-            button_Import.UseVisualStyleBackColor = true;
-            button_Import.Click += button_Import_Click;
             // 
             // groupBox_Details
             // 
@@ -82,8 +74,6 @@
             // checkbox_ProcessKnownType
             // 
             checkbox_ProcessKnownType.AutoSize = true;
-            checkbox_ProcessKnownType.Checked = true;
-            checkbox_ProcessKnownType.CheckState = CheckState.Checked;
             checkbox_ProcessKnownType.Font = new Font("Segoe UI", 9F);
             checkbox_ProcessKnownType.Location = new Point(6, 130);
             checkbox_ProcessKnownType.Name = "checkbox_ProcessKnownType";
@@ -143,46 +133,69 @@
             textbox_ImportFileName.Size = new Size(282, 23);
             textbox_ImportFileName.TabIndex = 0;
             // 
-            // button_Cancel
+            // buttonImport
             // 
-            button_Cancel.Location = new Point(264, 193);
-            button_Cancel.Name = "button_Cancel";
-            button_Cancel.Size = new Size(75, 23);
-            button_Cancel.TabIndex = 2;
-            button_Cancel.Text = "Cancel";
-            button_Cancel.UseVisualStyleBackColor = true;
-            button_Cancel.Click += button_Cancel_Click;
+            buttonImport.Location = new Point(3, 3);
+            buttonImport.Name = "buttonImport";
+            buttonImport.Size = new Size(252, 23);
+            buttonImport.TabIndex = 7;
+            buttonImport.Text = "Import/Next";
+            buttonImport.UseSelectable = true;
+            buttonImport.Click += button_Import_Click;
+            // 
+            // buttonCancel
+            // 
+            buttonCancel.Location = new Point(261, 3);
+            buttonCancel.Name = "buttonCancel";
+            buttonCancel.Size = new Size(75, 23);
+            buttonCancel.TabIndex = 8;
+            buttonCancel.Text = "Cancel";
+            buttonCancel.UseSelectable = true;
+            buttonCancel.Click += button_Cancel_Click;
+            // 
+            // panel1
+            // 
+            panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(buttonImport);
+            panel1.Controls.Add(buttonCancel);
+            panel1.Dock = DockStyle.Bottom;
+            panel1.Location = new Point(3, 188);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(340, 29);
+            panel1.TabIndex = 9;
             // 
             // WindowImport
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(377, 299);
+            ClientSize = new Size(346, 220);
+            Controls.Add(panel1);
             Controls.Add(groupBox_Details);
-            Controls.Add(button_Cancel);
-            Controls.Add(button_Import);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
+            MaximumSize = new Size(346, 220);
             Name = "WindowImport";
             Padding = new Padding(3, 24, 3, 3);
             StartPosition = FormStartPosition.CenterParent;
             Text = "Import New File";
             groupBox_Details.ResumeLayout(false);
             groupBox_Details.PerformLayout();
+            panel1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Button button_Import;
         private GroupBox groupBox_Details;
         private Button button_SelectImportFile;
         private TextBox textbox_ImportFileName;
         private Label label_Description_ImportFileName;
         private Label label_Description_ImportFileType;
         private ComboBox comboBox_AssetType;
-        private Button button_Cancel;
         private LinkLabel linkLabel1;
         private CheckBox checkbox_ProcessKnownType;
+        private ReaLTaiizor.Controls.PoisonButton buttonImport;
+        private ReaLTaiizor.Controls.PoisonButton buttonCancel;
+        private Panel panel1;
     }
 }

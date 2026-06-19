@@ -55,6 +55,7 @@ namespace RetroStrike.Platform.XBox
         public short TextureFormatVersion;
         public eXBoxD3DFormat TextureFormat;
         public float MipBias;
+        public byte[][] MipsData { get; private set; }
         public static RedTextureXBox CreateFromPBLChunk(PblChunk tex_chunk)
         {
             RedTextureXBox texture = new RedTextureXBox();
@@ -91,7 +92,7 @@ namespace RetroStrike.Platform.XBox
                     return 0;
             }
         }
-        public bool ExportMips(ref byte[][] mips, out int numMipsExported, out string errors)
+        public bool ExportMips(out int numMipsExported, out string errors)
         {
             numMipsExported = 0;
             if (WasCreatedFromPBLChunk)
@@ -109,7 +110,7 @@ namespace RetroStrike.Platform.XBox
                 //If it's a CubeMap then the number of faces is DataSize / 6 and we have to iterate over that as their own textures kinda
                 if (RedTextureType == eRedTextureType.TEXTURE)
                 {
-                    mips = new byte[numMips][];
+                    MipsData = new byte[numMips][];
 
                     if (isDXT)
                     {
@@ -131,7 +132,7 @@ namespace RetroStrike.Platform.XBox
                                 Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
                             }
                             var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
-                            mips[mip] = mipDec;
+                            MipsData[mip] = mipDec;
                             numMipsExported++;
                             sourcePos += rows * rowSize;
                         }
@@ -166,7 +167,7 @@ namespace RetroStrike.Platform.XBox
                                     Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
                                 }
                             }
-                            mips[mip] = mipData;
+                            MipsData[mip] = mipData;
                             numMipsExported++;
                             sourcePos += mipSize;
                         }
@@ -188,26 +189,46 @@ namespace RetroStrike.Platform.XBox
             errors = "Texture was not created from a PBLChunk.";
             return false;
         }
-        public static RedTextureXBox CreateFromImage(Stream xIn, int numMips, int depth, int texFormatVersion, eXBoxD3DFormat texFormat, eRedTextureType redTexType)
+        public static RedTextureXBox CreateFromImage(Stream xIn, ref int numMips, int depth, int texFormatVersion, eXBoxD3DFormat texFormat, eRedTextureType redTexType)
         {
+            //TODO: Eventually maybe allow custom Mips instead of just sizing down the given texture.
             RedTextureXBox toRet = new RedTextureXBox();
+            byte[][] _tempMipsData = new byte[numMips][];
+
             toRet.WasCreatedFromImage = true;
 
             MagickImage newImg = new MagickImage(xIn);
-
+            toRet.Width = (short)newImg.Width;
+            toRet.Height = (short)newImg.Height;
+            toRet.Depth = (short)depth;
+            toRet.TextureFormat = texFormat;
+            toRet.RedTextureType = redTexType;
+            toRet.TextureFormatVersion = (short)texFormatVersion;
+            bool _resizeMipArray = false;
             for (int mip = 0; mip < numMips; mip++)
             {
                 int mipWidth = (int)(newImg.Width >> mip);
                 int mipHeight = (int)(newImg.Height >> mip);
                 var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
+                toRet.MipsData[mip] = mipData;
                 //Resize img to next mip size ahead of the next loop iteration
-                if (mip < numMips)
+                if (mip + 1 < numMips)
                 {
                     uint nextMipWidth = (uint)((mipWidth) >> mip);
                     uint nextMipHeight = (uint)((mipHeight >> mip));
+                    if (nextMipWidth <= 0 || nextMipHeight <= 0)
+                    {
+                        _resizeMipArray = true;
+                        numMips = mip;
+                        break;
+                    }
                     newImg.Resize(nextMipWidth, nextMipHeight);
                 }
             }
+            if (_resizeMipArray)
+                Array.Resize(ref _tempMipsData, numMips);
+            toRet.MaxMaps = (short)_tempMipsData.Length;
+            toRet.MipsData = _tempMipsData;
 
             return toRet;
 

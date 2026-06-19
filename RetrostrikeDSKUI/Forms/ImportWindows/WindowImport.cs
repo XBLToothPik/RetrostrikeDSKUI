@@ -21,7 +21,7 @@ using ReaLTaiizor.Forms;
 using RetroStrike.VirtualDisk;
 using RetrostrikeDSKUI.RetroStrike;
 using System.Formats.Tar;
-namespace RetrostrikeDSKUI.Forms
+namespace RetrostrikeDSKUI.Forms.ImportWindows
 {
     public partial class WindowImport : MaterialForm
     {
@@ -72,7 +72,7 @@ namespace RetrostrikeDSKUI.Forms
         #region Event Handlers
         void TagetImportFileNameChanged_EventHandler(object sender, EventArgs e)
         {
-            button_Import.Enabled = File.Exists(TargetImportFile);
+            buttonImport.Enabled = File.Exists(TargetImportFile);
         }
         #endregion
 
@@ -81,7 +81,6 @@ namespace RetrostrikeDSKUI.Forms
         {
             public string FriendlyName;
             public uint Hash;
-
         }
         #endregion
 
@@ -95,7 +94,6 @@ namespace RetrostrikeDSKUI.Forms
             this._selectedFileType = currentFileTypeSelected;
             GetAssetFileTypes();
             PopulateView();
-            checkbox_ProcessKnownType.Checked = true;
         }
         #endregion
 
@@ -135,7 +133,6 @@ namespace RetrostrikeDSKUI.Forms
                     break;
                 }
             }
-
             comboBox_AssetType.EndUpdate();
         }
         #endregion
@@ -150,36 +147,52 @@ namespace RetrostrikeDSKUI.Forms
             //TODO: Work on importing files from here.
             //TODO: Work on Processing known file types for import/replace
             //TODO: Work on better error messages (like adding "errors" to CanAddFile and AddFile)
-            if (AppGlobals.ActiveDSK.CanAddFile(targetFileType, targetFileName))
+            string addFileFailReason = string.Empty;
+            if (AppGlobals.ActiveDSK.CanAddFile(targetFileType, targetFileName, out addFileFailReason))
             {
                 if (checkbox_ProcessKnownType.Checked && DSKFile.SupportedProcessingTypes.ContainsKey(targetFileType))
                 {
-                    //If it's supported then we'll do as "Next"
+                    //If it's supported then we'll do as "Next" amd open up the corresponding type import window.
+                    var typeImportWin = GetSupportedImportTypeForm(targetFileType);
+                    Form importWin = (Form)Activator.CreateInstance(typeImportWin);
+                    ((ITypeImportWindow)importWin).CustomData.Add("filename", this.TargetImportFile);
+                    ((ITypeImportWindow)importWin).LoadData();
+                    ((ITypeImportWindow)importWin).LoadDataIntoView();
+                    this.Opacity = 0.0f;
+                    this.Enabled = false;
+                    importWin.StartPosition = FormStartPosition.CenterParent;
+                    importWin.ShowDialog();
+                    if (((ITypeImportWindow)importWin).ImportSuccess)
+                    {
+                        this.ImportSuccess = true;
+                        this.WasFileImported = true;
+                        this.Close();
+                        return;
+                    }
+                    else
+                    {
+                        this.Opacity = 1.0f;
+                        this.Enabled = true;
+                    }
                 }
                 else
                 {
                     //Otherwise, we'll import it as raw
                     Stream xIn = File.Open(TargetImportFile, FileMode.Open, FileAccess.Read);
                     DSKFile.RFI newFile = null;
-                    if (AppGlobals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName, out newFile))
+                    if (AppGlobals.ActiveDSK.AddFile(targetFileType, xIn, targetFileName, out newFile, out addFileFailReason))
                     {
                         this.ImportSuccess = true;
                         this.WasFileImported = true;
                         this.Close();
                     }
-                    else
-                        MessageBox.Show("Uknown Error", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 return;
             }
-            else
-            {
-                MessageBox.Show("Import Error", "Cannot add file", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        void SetupImportedFileData()
-        {
 
+            if (!string.IsNullOrEmpty(addFileFailReason))
+                MessageBox.Show(addFileFailReason, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            
         }
         private void button_Cancel_Click(object sender, EventArgs e)
         {
@@ -188,6 +201,7 @@ namespace RetrostrikeDSKUI.Forms
         }
         #endregion
 
+        #region Event
         private void checkbox_ProcessKnownType_CheckedChanged(object sender, EventArgs e)
         {
             var targetFileType = ((ComboBoxItemFileType)comboBox_AssetType.SelectedItem).Hash;
@@ -195,10 +209,10 @@ namespace RetrostrikeDSKUI.Forms
             if (checkbox_ProcessKnownType.Checked && DSKFile.SupportedProcessingTypes.ContainsKey(targetFileType))
             {
                 //If it's supported then we'll do as "Next";
-                button_Import.Text = "Next..";
+                buttonImport.Text = "Next";
             }
             else
-                button_Import.Text = "Import";
+                buttonImport.Text = "Import";
         }
 
         private void comboBox_AssetType_SelectedIndexChanged(object sender, EventArgs e)
@@ -206,7 +220,25 @@ namespace RetrostrikeDSKUI.Forms
             var box = (ComboBox)sender;
             var selIndex = box.SelectedIndex;
             ComboBoxItemFileType item = (ComboBoxItemFileType)box.Items[selIndex];
-            checkbox_ProcessKnownType.Checked = DSKFile.SupportedProcessingTypes.ContainsKey(item.Hash);
+            checkbox_ProcessKnownType.Checked = checkbox_ProcessKnownType.Enabled = DSKFile.SupportedProcessingTypes.ContainsKey(item.Hash);
+            checkbox_ProcessKnownType_CheckedChanged(checkbox_ProcessKnownType_CheckedChanged, null); //little hacky but
         }
+        #endregion
+
+        #region Methods
+        Type GetSupportedImportTypeForm(uint typeHash)
+        {
+            if (DSKFile.SupportedProcessingTypes.ContainsKey(typeHash))
+            {
+                switch (DSKFile.SupportedProcessingTypes[typeHash])
+                {
+                    case "texture":
+                        return typeof(WindowImportTexture);
+                }
+            }
+            return null;
+        }
+        #endregion
+
     }
 }
