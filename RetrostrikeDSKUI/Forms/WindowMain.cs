@@ -222,12 +222,11 @@ namespace RetrostrikeDSKUI
                     PblFile inFile = new PblFile(AppGlobals.ActiveDSK, xIn);
                     inFile.Read();
                     PblFile copyFile = inFile.Copy();
-                    using (Stream xOut = File.Create($"test_raw_data4_dupe.dat"))
+                    using (Stream xOut = File.Create($"{Path.GetFileNameWithoutExtension(OFD.FileName)}.duplicated"))
                     {
                         copyFile.MainPBLFileStream.Seek(0, SeekOrigin.Begin);
                         IOUtils.CopyFromToWithLength(copyFile.MainPBLFileStream, xOut, copyFile.MainPBLFileStream.Length);
                     }
-                    //TODO: !!!!!!!!!!!!!!! DO THIS NEXT !!!!!!! IMPORTANT !!!!!!! DUPLICATE THE PBL FILE WITH A NEW ONE!!!!!!!!
                 }
             }
         }

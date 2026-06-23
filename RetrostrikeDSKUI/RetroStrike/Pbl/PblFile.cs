@@ -18,12 +18,14 @@ namespace RetroStrike.Pbl
     {
         public DSKFile OwnerDSKFile { get; set; }
 
+        /// <summary>
+        /// This stream should be the same as the RootChunk's DataStream
+        /// </summary>
         public Stream MainPBLFileStream { get; internal set; }
         public PblChunk RootChunk { get; internal set; }
-        public PblFile(DSKFile owner, Stream xIn)
+        public PblFile(DSKFile owner, Stream xIn) : this(owner)
         {
             this.MainPBLFileStream = xIn;
-            this.OwnerDSKFile = owner;
         }
         public PblFile(DSKFile owner)
         {
@@ -40,6 +42,7 @@ namespace RetroStrike.Pbl
             copyChunkChildren = (PblChunk source, PblChunk target) =>
             {
                 source.WriteChunkTo(target, false, false);
+                target.DataStream = newRootChunk.DataStream;
                 foreach (var childChunk in source.Children)
                 {
                     var newChild = PblChunk.CreateBlankMemoryChunk(childChunk.ID);
@@ -48,7 +51,6 @@ namespace RetroStrike.Pbl
                     target.Children.Add(newChild);
                     newChild.ParentPBLChunk = target;
                     copyChunkChildren(childChunk, newChild);
-                    newChild.DataStream = newRootChunk.DataStream;
                 }
             };
             copyChunkChildren(this.RootChunk, newRootChunk);
