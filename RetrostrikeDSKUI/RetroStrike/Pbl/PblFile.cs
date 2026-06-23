@@ -43,11 +43,11 @@ namespace RetroStrike.Pbl
             {
                 source.WriteChunkTo(target, false, false);
                 target.DataStream = newRootChunk.DataStream;
+                target.DataStart = source.DataStart;
+                target.DataEnd = source.DataEnd;
                 foreach (var childChunk in source.Children)
                 {
                     var newChild = PblChunk.CreateBlankMemoryChunk(childChunk.ID);
-                    newChild.DataStart = childChunk.DataStart;
-                    newChild.DataEnd = childChunk.DataEnd;
                     target.Children.Add(newChild);
                     newChild.ParentPBLChunk = target;
                     copyChunkChildren(childChunk, newChild);

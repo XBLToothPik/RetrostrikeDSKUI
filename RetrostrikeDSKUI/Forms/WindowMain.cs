@@ -221,7 +221,7 @@ namespace RetrostrikeDSKUI
                 {
                     PblFile inFile = new PblFile(AppGlobals.ActiveDSK, xIn);
                     inFile.Read();
-                    PblFile copyFile = inFile.Copy();
+                    PblFile copyFile = inFile.Copy(); //Rebuilds the entire PBLChunk file from the ground up.
                     using (Stream xOut = File.Create($"{Path.GetFileNameWithoutExtension(OFD.FileName)}.duplicated"))
                     {
                         copyFile.MainPBLFileStream.Seek(0, SeekOrigin.Begin);

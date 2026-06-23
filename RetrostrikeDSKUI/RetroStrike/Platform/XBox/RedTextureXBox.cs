@@ -152,9 +152,9 @@ namespace RetroStrike.Platform.XBox
 
 
             PblChunk newTexChunk = PblChunk.CreateNew(texChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_TEX_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, 0);
-            newNameChunk.WriteChunkTo(newTexChunk);
-            newInfoChunk.WriteChunkTo(newTexChunk);
-            newBodyChunk.WriteChunkTo(newTexChunk);
+            newNameChunk.WriteChunkTo(newTexChunk, true);
+            newInfoChunk.WriteChunkTo(newTexChunk, true);
+            newBodyChunk.WriteChunkTo(newTexChunk, true);
             //We now have a full "tex_" chunk
 
             //When we call PblChunk.CopyDataTo(mainPblFilestream) into the main UCFB, we'll update the final start positions
