@@ -108,18 +108,14 @@ namespace RetroStrike.Pbl
         #endregion
 
         #region Writing
-        public void WriteChunkTo(PblChunk targetChunkToWriteTo, bool includeHeaderData = false, bool addAsChild = false, bool setStream = false)
+        public void WriteChunkTo(PblChunk targetChunkToWriteTo, bool addAsChild = false, bool setStream = false)
         {
             var xOut = targetChunkToWriteTo.DataStream;
             DataStream.Seek(DataStart, SeekOrigin.Begin);
-            if (includeHeaderData)
-                DataStream.Seek(-8, SeekOrigin.Current);
             xOut.Seek(0, SeekOrigin.End);
             int numAligned = IOUtils.PadStreamToAlignment(xOut, 4);
-            int lenToCopy = includeHeaderData ? 8 + DataLength : DataLength;
-            int numCopied = IOUtils.CopyFromToWithLength(DataStream, xOut, lenToCopy);
+            int numCopied = IOUtils.CopyFromToWithLength(DataStream, xOut, DataLength);
             numAligned += IOUtils.PadStreamToAlignment(xOut, 4);
-
             xOut.Seek(4, SeekOrigin.Begin);
             targetChunkToWriteTo.DataLength += numCopied + numAligned;
             Debug.WriteLine($"{this.IDAsString} LEN: {this.DataLength} (TARGET: \"{targetChunkToWriteTo.IDAsString}\" LEN: {targetChunkToWriteTo.DataLength})");
