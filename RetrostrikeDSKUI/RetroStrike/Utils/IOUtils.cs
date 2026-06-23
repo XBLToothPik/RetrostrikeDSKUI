@@ -27,5 +27,18 @@ namespace RetroStrike.Utils
             }
             return bytesCopied;
         }
+        public static int PadStreamToAlignment(Stream targetStream, int numAlignment)
+        {
+            if (numAlignment <= 0)
+                throw new ArgumentOutOfRangeException(nameof(numAlignment));
+
+            long remainder = targetStream.Position % numAlignment;
+            if (remainder == 0)
+                return 0;
+
+            int padBytes = (int)(numAlignment - remainder);
+            targetStream.Write(new byte[padBytes], 0, padBytes);
+            return padBytes;
+        }
     }
 }

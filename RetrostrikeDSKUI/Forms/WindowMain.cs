@@ -101,6 +101,41 @@ namespace RetrostrikeDSKUI
 
             }
         }
+
+#if DEBUG
+        private void mainMenuStrip_Debug_PblCreate_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Open Image...";
+            ofd.Filter = "|*.*";
+            ofd.Multiselect = false;
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                string targetOpenFileName = ofd.FileName;
+                using (Stream xIn = File.Open(targetOpenFileName, FileMode.Open))
+                {
+                    int numMips = 10;
+                    int depth = 1;
+                    int version = 1;
+                    RedTextureXBox.eXBoxD3DFormat d3dFormat = RedTextureXBox.eXBoxD3DFormat.XBOXFMT_DXT1;
+                    RedTextureXBox.eRedTextureType texType = RedTextureXBox.eRedTextureType.TEXTURE;
+                    //TODO: NEXT!!! SWIZZLE, COMPRESS and write mip data
+                    RedTextureXBox texture = RedTextureXBox.CreateFromImage(xIn, Path.GetFileNameWithoutExtension(targetOpenFileName), ref numMips, depth, version, d3dFormat, texType);
+
+                    PblFile newPblFile = PblFile.CreateFromRootChunk(null, PblChunk.CreateBlankMemoryChunk(BitConverter.ToUInt32(Encoding.ASCII.GetBytes("ucfb"))));
+                    PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
+                    tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
+
+                    newPblFile.MainPBLFileStream.Seek(0, SeekOrigin.Begin);
+                    using (Stream xOut = File.Create("output_pbltest.dat"))
+                    {
+                        IOUtils.CopyFromToWithLength(newPblFile.MainPBLFileStream, xOut, newPblFile.MainPBLFileStream.Length);
+                    }
+                }
+
+            }
+
+        }
         private void mainMenuStrip_Debug_Test_Click(object sender, EventArgs e)
         {
             if (AppGlobals.ActiveDSK != null)
@@ -136,6 +171,67 @@ namespace RetrostrikeDSKUI
                 }
             }
         }
+        private void mainMenuStrip_Debug_PrintPBLChunks_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OFD = new OpenFileDialog();
+            OFD.Title = "Open PBL Chunk File..";
+            OFD.Filter = "|*.*";
+            OFD.Multiselect = false;
+            if (OFD.ShowDialog() == DialogResult.OK)
+            {
+                using (Stream xIn = File.Open(OFD.FileName, FileMode.Open))
+                {
+                    PblFile inFile = new PblFile(AppGlobals.ActiveDSK, xIn);
+                    inFile.Read();
+                    int tabLevel = 0;
+                    Action<PblChunk> PrintPblChunk = null;
+                    PrintPblChunk = (PblChunk test) =>
+                    {
+
+                        string tabs = string.Empty;
+                        for (int i = 0; i < tabLevel; i++)
+                            tabs += "\t";
+                        string output = tabs;
+                        output += test.IDAsString;
+                        if (test.Children.Count > 0)
+                            output += "->";
+                        Debug.WriteLine(output);
+                        foreach (var child in test.Children)
+                        {
+                            tabLevel++;
+                            PrintPblChunk(child);
+                            tabLevel--;
+                        }
+                    };
+                    Debug.WriteLine($"{Path.GetFileName(OFD.FileName)} PBL Chunks:");
+                    PrintPblChunk(inFile.RootChunk);
+
+                }
+            }
+        }
+        private void mainMenuStrip_Debug_DuplicatePBL_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OFD = new OpenFileDialog();
+            OFD.Title = "Open PBL Chunk File...";
+            OFD.Filter = "|*.*";
+            OFD.Multiselect = false;
+            if (OFD.ShowDialog() == DialogResult.OK)
+            {
+                using (Stream xIn = File.Open(OFD.FileName, FileMode.Open))
+                {
+                    PblFile inFile = new PblFile(AppGlobals.ActiveDSK, xIn);
+                    inFile.Read();
+                    PblFile copyFile = inFile.Copy();
+                    using (Stream xOut = File.Create($"test_raw_data4_dupe.dat"))
+                    {
+                        copyFile.MainPBLFileStream.Seek(0, SeekOrigin.Begin);
+                        IOUtils.CopyFromToWithLength(copyFile.MainPBLFileStream, xOut, copyFile.MainPBLFileStream.Length);
+                    }
+                    //TODO: !!!!!!!!!!!!!!! DO THIS NEXT !!!!!!! IMPORTANT !!!!!!! DUPLICATE THE PBL FILE WITH A NEW ONE!!!!!!!!
+                }
+            }
+        }
+#endif
 
         #endregion
 
@@ -151,7 +247,7 @@ namespace RetrostrikeDSKUI
                 RetrostrikeDSKUI.Forms.ImportWindows.WindowImport x;
                 WindowImport window = new WindowImport(this.GetSelectedViewFileType(), OFD.FileName);
                 window.ShowDialog();
-                
+
                 if (window.ImportSuccess && window.WasFileImported)
                 {
 
@@ -437,7 +533,7 @@ namespace RetrostrikeDSKUI
 
 
         #endregion
-        
+
         #region Methods
         void SetWindowTitleExtension(string titleExtension)
         {
@@ -726,5 +822,9 @@ namespace RetrostrikeDSKUI
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int msg, bool wParam, int lParam);
         #endregion
+
+
+
+
     }
 }

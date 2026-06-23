@@ -1,5 +1,6 @@
 ﻿using ImageMagick;
 using RetroStrike.Pbl;
+using RetroStrike.Utils;
 using Squish;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,6 @@ namespace RetroStrike.Platform.XBox
         public bool WasCreatedFromPBLChunk { get; private set; }
         public bool WasCreatedFromImage { get; private set; }
         public PblChunk PblTexChunk { get; private set; }
-        public Stream ImageStream { get; private set; }
         public enum eRedTextureType : short
         {
             TEXTURE = 1,
@@ -56,6 +56,7 @@ namespace RetroStrike.Platform.XBox
         public eXBoxD3DFormat TextureFormat;
         public float MipBias;
         public byte[][] MipsData { get; private set; }
+        //public bool MipsProcessed { get; private set; }
         public static RedTextureXBox CreateFromPBLChunk(PblChunk tex_chunk)
         {
             RedTextureXBox texture = new RedTextureXBox();
@@ -76,9 +77,89 @@ namespace RetroStrike.Platform.XBox
                     texture.TextureFormatVersion = reader.ReadInt16(); //expected to be 1
                     texture.TextureFormat = (eXBoxD3DFormat)reader.ReadInt32();
                     texture.MipBias = reader.ReadSingle();
+                    reader.ReadInt32(); //"TotalDataLength"
                 }
             }
             return texture;
+        }
+        public PblChunk ToPblChunk(PblFile parentPBLFile)
+        {
+            //
+            //  TODO: This needs massively refactored and portions of it need put directly into the PblChunk.cs
+            //
+
+            //Let's create the streams
+            MemoryStream texChunkStream = new MemoryStream();
+            MemoryStream nameChunkStream = new MemoryStream();
+            MemoryStream infoChunkStream = new MemoryStream();
+            MemoryStream bodyChunkStream = new MemoryStream();
+
+            //Setup constants (can be more than this but this is what we're working with right now)
+            const string CHUNK_TEX_ID_STR = "tex_";
+            const string CHUNK_NAME_ID_STR = "NAME";
+            const string CHUNK_INFO_ID_STR = "INFO";
+            const string CHUNK_BODY_ID_STR = "BODY";
+
+            const int CHUNK_INFO_SIZE = 24;
+
+            //First we'll create the NameChunk Data
+            BinaryWriter writer = new BinaryWriter(nameChunkStream);
+            writer.Write(Encoding.ASCII.GetBytes(CHUNK_NAME_ID_STR));
+            writer.Write(this.TextureName.Length + 1); //+1 for null terminator
+            writer.Write(Encoding.ASCII.GetBytes(this.TextureName));
+            writer.Write((byte)0); //null term
+            PblChunk newNameChunk = PblChunk.CreateNew(nameChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_NAME_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, (int)(nameChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE));
+
+            //Next we'll create the Body chunk (before info because Info contains the body's content size)
+            writer = new BinaryWriter(bodyChunkStream);
+            writer.Write(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR));
+            byte[] allTextureData = Encoding.ASCII.GetBytes("TESTTEXTUREDATA");
+            int totalDataLen = allTextureData.Length;
+
+            //NEXT: 
+            //1) Get the mips data and do operations to it (compress, swizzle..etc.., depending upon platform and formats).
+
+            writer.Write(totalDataLen);
+            writer.Write(allTextureData);
+
+            PblChunk newBodyChunk = PblChunk.CreateNew(bodyChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, (int)(bodyChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE));
+
+
+            //Next we'll create the Info Chunk
+            writer = new BinaryWriter(infoChunkStream);
+            writer.Write(Encoding.ASCII.GetBytes(CHUNK_INFO_ID_STR));
+            writer.Write(CHUNK_INFO_SIZE);
+            writer.Write((short)Width);
+            writer.Write((short)Height);
+            writer.Write((short)Depth);
+            writer.Write((short)MaxMaps);
+            writer.Write((short)RedTextureType);
+            writer.Write((short)TextureFormatVersion);
+            writer.Write((int)TextureFormat);
+            writer.Write(MipBias);
+            writer.Write((int)bodyChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE);
+            PblChunk newInfoChunk = PblChunk.CreateNew(infoChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_INFO_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, (int)(infoChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE));
+
+            //Reposition the streams
+            nameChunkStream.Seek(0, SeekOrigin.Begin);
+            infoChunkStream.Seek(0, SeekOrigin.Begin);
+            bodyChunkStream.Seek(0, SeekOrigin.Begin);
+
+            //Finally, we'll create the tex_ chunk
+            writer = new BinaryWriter(texChunkStream);
+            writer.Write(Encoding.ASCII.GetBytes(CHUNK_TEX_ID_STR));
+            writer.Write(0); //WriteChunkTo will re-write this as the datalength increases.
+
+
+            PblChunk newTexChunk = PblChunk.CreateNew(texChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_TEX_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, 0);
+            newNameChunk.WriteChunkTo(newTexChunk);
+            newInfoChunk.WriteChunkTo(newTexChunk);
+            newBodyChunk.WriteChunkTo(newTexChunk);
+            //We now have a full "tex_" chunk
+
+            //When we call PblChunk.CopyDataTo(mainPblFilestream) into the main UCFB, we'll update the final start positions
+            return newTexChunk;
+
         }
         SquishFlags GetSquishFlagFromFormat(eXBoxD3DFormat format)
         {
@@ -189,10 +270,11 @@ namespace RetroStrike.Platform.XBox
             errors = "Texture was not created from a PBLChunk.";
             return false;
         }
-        public static RedTextureXBox CreateFromImage(Stream xIn, ref int numMips, int depth, int texFormatVersion, eXBoxD3DFormat texFormat, eRedTextureType redTexType)
+        public static RedTextureXBox CreateFromImage(Stream xIn, string textureName, ref int numMips, int depth, int texFormatVersion, eXBoxD3DFormat texFormat, eRedTextureType redTexType)
         {
             //TODO: Eventually maybe allow custom Mips instead of just sizing down the given texture.
             RedTextureXBox toRet = new RedTextureXBox();
+            toRet.TextureName = textureName;
             byte[][] _tempMipsData = new byte[numMips][];
 
             toRet.WasCreatedFromImage = true;
@@ -210,7 +292,7 @@ namespace RetroStrike.Platform.XBox
                 int mipWidth = (int)(newImg.Width >> mip);
                 int mipHeight = (int)(newImg.Height >> mip);
                 var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
-                toRet.MipsData[mip] = mipData;
+                _tempMipsData[mip] = mipData;
                 //Resize img to next mip size ahead of the next loop iteration
                 if (mip + 1 < numMips)
                 {

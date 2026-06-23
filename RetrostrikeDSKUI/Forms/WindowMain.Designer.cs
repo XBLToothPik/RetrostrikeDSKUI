@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            ReaLTaiizor.ControlRenderer controlRenderer1 = new ReaLTaiizor.ControlRenderer();
-            ReaLTaiizor.MSColorTable msColorTable1 = new ReaLTaiizor.MSColorTable();
+            ReaLTaiizor.ControlRenderer controlRenderer2 = new ReaLTaiizor.ControlRenderer();
+            ReaLTaiizor.MSColorTable msColorTable2 = new ReaLTaiizor.MSColorTable();
             FileOptionsContextMenu = new ContextMenuStrip(components);
             mainStatusStrip_Label_Status_old = new ToolStripStatusLabel();
             mainMenuStrip = new ReaLTaiizor.Controls.ParrotFlatMenuStrip();
@@ -40,10 +40,13 @@
             currentDSKToolStripMenuItem = new ToolStripMenuItem();
             mainMenuStrip_File_Save_AsNew = new ToolStripMenuItem();
             mainMenuStrip_Debug = new ToolStripMenuItem();
+            mainMenuStrip_Debug_Test = new ToolStripMenuItem();
+            mainMenuStrip_Debug_PblCreate = new ToolStripMenuItem();
+            mainMenuStrip_Debug_PrintPBLChunks = new ToolStripMenuItem();
             mainStatusStrip = new ReaLTaiizor.Controls.FormStatusStrip();
             mainStatusStrip_Label_Status = new ToolStripStatusLabel();
             mainTabControl = new TabControl();
-            mainMenuStrip_Debug_Test = new ToolStripMenuItem();
+            mainMenuStrip_Debug_DuplicatePBL = new ToolStripMenuItem();
             mainMenuStrip.SuspendLayout();
             mainStatusStrip.SuspendLayout();
             SuspendLayout();
@@ -119,11 +122,35 @@
             // 
             // mainMenuStrip_Debug
             // 
-            mainMenuStrip_Debug.DropDownItems.AddRange(new ToolStripItem[] { mainMenuStrip_Debug_Test });
+            mainMenuStrip_Debug.DropDownItems.AddRange(new ToolStripItem[] { mainMenuStrip_Debug_Test, mainMenuStrip_Debug_PblCreate, mainMenuStrip_Debug_PrintPBLChunks, mainMenuStrip_Debug_DuplicatePBL });
             mainMenuStrip_Debug.ForeColor = Color.Black;
             mainMenuStrip_Debug.Name = "mainMenuStrip_Debug";
             mainMenuStrip_Debug.Size = new Size(54, 20);
             mainMenuStrip_Debug.Text = "Debug";
+            // 
+            // mainMenuStrip_Debug_Test
+            // 
+            mainMenuStrip_Debug_Test.ForeColor = Color.Black;
+            mainMenuStrip_Debug_Test.Name = "mainMenuStrip_Debug_Test";
+            mainMenuStrip_Debug_Test.Size = new Size(180, 22);
+            mainMenuStrip_Debug_Test.Text = "Test";
+            mainMenuStrip_Debug_Test.Click += mainMenuStrip_Debug_Test_Click;
+            // 
+            // mainMenuStrip_Debug_PblCreate
+            // 
+            mainMenuStrip_Debug_PblCreate.ForeColor = Color.Black;
+            mainMenuStrip_Debug_PblCreate.Name = "mainMenuStrip_Debug_PblCreate";
+            mainMenuStrip_Debug_PblCreate.Size = new Size(180, 22);
+            mainMenuStrip_Debug_PblCreate.Text = "PblCreate";
+            mainMenuStrip_Debug_PblCreate.Click += mainMenuStrip_Debug_PblCreate_Click;
+            // 
+            // mainMenuStrip_Debug_PrintPBLChunks
+            // 
+            mainMenuStrip_Debug_PrintPBLChunks.ForeColor = Color.Black;
+            mainMenuStrip_Debug_PrintPBLChunks.Name = "mainMenuStrip_Debug_PrintPBLChunks";
+            mainMenuStrip_Debug_PrintPBLChunks.Size = new Size(180, 22);
+            mainMenuStrip_Debug_PrintPBLChunks.Text = "Print PBL Chunks";
+            mainMenuStrip_Debug_PrintPBLChunks.Click += mainMenuStrip_Debug_PrintPBLChunks_Click;
             // 
             // mainStatusStrip
             // 
@@ -131,9 +158,9 @@
             mainStatusStrip.Items.AddRange(new ToolStripItem[] { mainStatusStrip_Label_Status });
             mainStatusStrip.Location = new Point(3, 418);
             mainStatusStrip.Name = "mainStatusStrip";
-            controlRenderer1.ColorTable = msColorTable1;
-            controlRenderer1.RoundedEdges = true;
-            mainStatusStrip.Renderer = controlRenderer1;
+            controlRenderer2.ColorTable = msColorTable2;
+            controlRenderer2.RoundedEdges = true;
+            mainStatusStrip.Renderer = controlRenderer2;
             mainStatusStrip.Size = new Size(589, 22);
             mainStatusStrip.SizingGrip = false;
             mainStatusStrip.TabIndex = 15;
@@ -154,15 +181,15 @@
             mainTabControl.Size = new Size(589, 370);
             mainTabControl.TabIndex = 16;
             // 
-            // mainMenuStrip_Debug_Test
+            // mainMenuStrip_Debug_DuplicatePBL
             // 
-            mainMenuStrip_Debug_Test.ForeColor = Color.Black;
-            mainMenuStrip_Debug_Test.Name = "mainMenuStrip_Debug_Test";
-            mainMenuStrip_Debug_Test.Size = new Size(180, 22);
-            mainMenuStrip_Debug_Test.Text = "Test";
-            mainMenuStrip_Debug_Test.Click += mainMenuStrip_Debug_Test_Click;
+            mainMenuStrip_Debug_DuplicatePBL.ForeColor = Color.Black;
+            mainMenuStrip_Debug_DuplicatePBL.Name = "mainMenuStrip_Debug_DuplicatePBL";
+            mainMenuStrip_Debug_DuplicatePBL.Size = new Size(180, 22);
+            mainMenuStrip_Debug_DuplicatePBL.Text = "Duplicate PBL";
+            mainMenuStrip_Debug_DuplicatePBL.Click += mainMenuStrip_Debug_DuplicatePBL_Click;
             // 
-            // MainWindow
+            // WindowMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -173,7 +200,7 @@
             Controls.Add(mainMenuStrip);
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
             Margin = new Padding(2);
-            Name = "MainWindow";
+            Name = "WindowMain";
             Padding = new Padding(3, 24, 1, 2);
             Text = "RETROSTRIKE DSK EDITOR";
             mainMenuStrip.ResumeLayout(false);
@@ -206,5 +233,8 @@
         private ToolStripMenuItem debugToolStripMenuItem;
         private ToolStripMenuItem mainMenuStrip_Debug;
         private ToolStripMenuItem mainMenuStrip_Debug_Test;
+        private ToolStripMenuItem mainMenuStrip_Debug_PblCreate;
+        private ToolStripMenuItem mainMenuStrip_Debug_PrintPBLChunks;
+        private ToolStripMenuItem mainMenuStrip_Debug_DuplicatePBL;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ImageMagick;
+using RetroStrike.Pbl;
 using RetroStrike.Platform.XBox;
 using RetroStrike.Utils;
 using RetrostrikeDSKUI.Application;
@@ -268,19 +269,37 @@ namespace RetroStrike.VirtualDisk
             //The targetRFI will be a new imported file.  So in this case it should be an image (png, tga..etc..)
             //Though we should really do most of this in the RedTextureXBox (or other platform) 
             //      !! dont forget about doing mips
-            //TODO: Design the Import Texture Window
 
             int numMips = (int)targetRFI.CustomData["tex_maxmaps"];
             int depth = (int)targetRFI.CustomData["tex_depth"];
             int version = (int)targetRFI.CustomData["tex_formatversion"];
+            
             RedTextureXBox.eXBoxD3DFormat d3dFormat = (RedTextureXBox.eXBoxD3DFormat)targetRFI.CustomData["tex_d3dformat"];
             RedTextureXBox.eRedTextureType texType = (RedTextureXBox.eRedTextureType)targetRFI.CustomData["tex_type"];
 
 
-            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, ref numMips, depth, version, d3dFormat, texType);
+            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, targetRFI.NewIncomingFileName, ref numMips, depth, version, d3dFormat, texType);
             targetRFI.CustomData["tex_maxmaps"] = numMips;
+            
+
+            PblFile newPblFile = PblFile.CreateFromRootChunk(this, PblChunk.CreateBlankMemoryChunk(Hashing.MakeFNV1A("ucfb")));
+            PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
+            tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
 
 
+            //Reset the processing stage.  The new incoming stream is that of the processed stream and so if the DSK were saved with a new processed item, and then saved again,
+            //it wouldn't try processing the stream again (it couldn't because the original stream was closed and replaced with the processsed one), so it should
+            //just copy from the NewIncomingFileStream in that case, which is good.
+            //NEXT: !!!!!!!!! Make a debug option in the UI to test all of this (first, output a valid PBL file, then continue with the code here in the DSK)
+            //TODO:
+            //      1) Add "IsProcessing" to the RFI and update it here (or in the switch)
+            //      2) Add "ProcessSuccess" bool to the RFI and update it here with a try statement (or in the switch)
+            //      3) Add "ProcessError" if there is an error in the try statement as suggested above
+            
+            //TODO: Move this to the switch statement as this should be applicable for all processed items:
+            targetRFI.NewIncomingFileStream.Close();
+            targetRFI.NewIncomingFileStream = newPblFile.MainPBLFileStream;
+            targetRFI.ProcessAsFileType = false;
         }
         #endregion
 

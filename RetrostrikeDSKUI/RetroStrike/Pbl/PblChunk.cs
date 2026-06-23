@@ -10,26 +10,32 @@ namespace RetroStrike.Pbl
 {
     public class PblChunk
     {
+        #region Constant
+        public const int CHUNK_HEADER_SIZE = 8;
+        #endregion
+
         #region Properties
-        public Stream DataStream { get; private set; }
-        public PblFile ParentPBLFile { get; private set; }
-        public PblChunk ParentPBLChunk { get; private set; }
-        public List<PblChunk> Children { get; private set; }
+        public Stream DataStream { get; internal set; }
+        public PblFile ParentPBLFile { get; internal set; }
+        public PblChunk ParentPBLChunk { get; internal set; }
+        public List<PblChunk> Children { get; internal set; }
         public uint ID { get; private set; }
         public string IDAsString => Encoding.ASCII.GetString(BitConverter.GetBytes(ID));
         public int DataLength { get; private set; }
-        public long DataStart { get; private set; }
-        public long DataEnd { get; private set; }
+        public long DataStart { get; internal set; }
+        public long DataEnd { get; internal set; }
         #endregion
 
         #region CTORS
-        public PblChunk(Stream sourceStream, PblFile parentPBLFile, PblChunk parentChunk = null)
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        public PblChunk(Stream dataStream, PblFile parentPBLFile, PblChunk parentChunk = null) : this()
         {
-            this.DataStream = sourceStream;
-            this.Children = new List<PblChunk>();
+            this.DataStream = dataStream;
             this.ParentPBLFile = parentPBLFile;
             this.ParentPBLChunk = parentChunk;
+        }
+        PblChunk()
+        {
+            this.Children = new List<PblChunk>();
         }
         #endregion
 
@@ -102,7 +108,29 @@ namespace RetroStrike.Pbl
         #endregion
 
         #region Writing
+        public void WriteChunkTo(PblChunk targetChunkToWriteTo, bool includeHeaderData = false, bool addAsChild = false, bool setStream = false)
+        {
+            var xOut = targetChunkToWriteTo.DataStream;
+            DataStream.Seek(DataStart, SeekOrigin.Begin);
+            if (includeHeaderData)
+                DataStream.Seek(-8, SeekOrigin.Current);
+            xOut.Seek(0, SeekOrigin.End);
+            int numAligned = IOUtils.PadStreamToAlignment(xOut, 4);
+            int lenToCopy = includeHeaderData ? 8 + DataLength : DataLength;
+            int numCopied = IOUtils.CopyFromToWithLength(DataStream, xOut, lenToCopy);
+            numAligned += IOUtils.PadStreamToAlignment(xOut, 4);
 
+            xOut.Seek(4, SeekOrigin.Begin);
+            targetChunkToWriteTo.DataLength += numCopied + numAligned;
+            Debug.WriteLine($"{this.IDAsString} LEN: {this.DataLength} (TARGET: \"{targetChunkToWriteTo.IDAsString}\" LEN: {targetChunkToWriteTo.DataLength})");
+            xOut.Write(BitConverter.GetBytes(targetChunkToWriteTo.DataLength), 0, sizeof(int));
+            xOut.Seek(0, SeekOrigin.End);
+            if (addAsChild)
+            {
+                targetChunkToWriteTo.Children.Add(this);
+                this.ParentPBLChunk = targetChunkToWriteTo;
+            }
+        }
         #endregion
 
         #region Methods
@@ -113,6 +141,17 @@ namespace RetroStrike.Pbl
             newChunk.DataStart = dataStart;
             newChunk.DataLength = dataLength;
             newChunk.DataEnd = dataStart + dataLength;
+            return newChunk;
+        }
+        internal static PblChunk CreateBlankMemoryChunk(uint id, int dataSize = 0)
+        {
+            PblChunk newChunk = new PblChunk();
+            newChunk.ID = id;
+
+            Stream xMem = new MemoryStream();
+            xMem.Write(BitConverter.GetBytes(newChunk.ID), 0, sizeof(uint));
+            xMem.Write(BitConverter.GetBytes(dataSize), 0, sizeof(int));
+            newChunk.DataStream = xMem;
             return newChunk;
         }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2022:Avoid inexact read with 'Stream.Read'", Justification = "<Pending>")]

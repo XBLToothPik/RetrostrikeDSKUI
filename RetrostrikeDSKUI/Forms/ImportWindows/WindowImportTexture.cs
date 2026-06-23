@@ -57,6 +57,11 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
             //          3) populate the tex type combobox (TEXTURE, CUBEMAP, VOLUME)
             //          4) When click cancel, close the active stream
             //          5) Create the RFI.  Set it's custom data, add to DSKFile
+            //          6) Finish the ProcessNewRFIAsTexture in the DSKFile.
+                            //also implement PblChunk writing.
+
+            //EVENTUALLY:
+            //          1) Allow custom-mips instead of forcing all mips to be downsized samples of the original image (not necessary, but neat)
 
         }
         #endregion
@@ -100,11 +105,6 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
                     : PictureBoxSizeMode.CenterImage;
                 pictureBoxTexturePreview.Image = newBMP;
             }
-            else
-            {
-                //Disable controls, set image to "INVALID_IMAGE" 
-            }
-
         }
         #endregion
 
