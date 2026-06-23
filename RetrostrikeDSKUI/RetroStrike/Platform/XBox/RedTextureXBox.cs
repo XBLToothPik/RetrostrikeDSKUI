@@ -56,6 +56,7 @@ namespace RetroStrike.Platform.XBox
         public eXBoxD3DFormat TextureFormat;
         public float MipBias;
         public byte[][] MipsData { get; private set; }
+        public bool MipsEncoded { get; private set; } //TODO: If 
         //public bool MipsProcessed { get; private set; }
         public static RedTextureXBox CreateFromPBLChunk(PblChunk tex_chunk)
         {
@@ -118,7 +119,8 @@ namespace RetroStrike.Platform.XBox
 
             //NEXT: 
             //1) Get the mips data and do operations to it (compress, swizzle..etc.., depending upon platform and formats).
-
+            //2) I don't think we should necessarily do the Mips data compression/swizzling/platform specific encoding here.
+            //      I think we should do it in another function, perhaps "EncodeMipsData" (and maybe even create a DecodeMipsData..?)
             writer.Write(totalDataLen);
             writer.Write(allTextureData);
 
@@ -173,9 +175,9 @@ namespace RetroStrike.Platform.XBox
                     return 0;
             }
         }
-        public bool ExportMips(out int numMipsExported, out string errors)
+        public bool DecodeMips(out int numMipsDecoded, out string errors)
         {
-            numMipsExported = 0;
+            numMipsDecoded = 0;
             if (WasCreatedFromPBLChunk)
             {
                 //
@@ -214,7 +216,7 @@ namespace RetroStrike.Platform.XBox
                             }
                             var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
                             MipsData[mip] = mipDec;
-                            numMipsExported++;
+                            numMipsDecoded++;
                             sourcePos += rows * rowSize;
                         }
                     }
@@ -249,7 +251,7 @@ namespace RetroStrike.Platform.XBox
                                 }
                             }
                             MipsData[mip] = mipData;
-                            numMipsExported++;
+                            numMipsDecoded++;
                             sourcePos += mipSize;
                         }
                     }
@@ -262,7 +264,7 @@ namespace RetroStrike.Platform.XBox
                 
                 }
             }
-            if (numMipsExported > 0)
+            if (numMipsDecoded > 0)
             {
                 errors = string.Empty;
                 return true;

@@ -57,7 +57,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             xboxtexture = RedTextureXBox.CreateFromPBLChunk(_targetPblFile.RootChunk.GetChildByID("tex_"));
             int numMips = -1;
             string mipsExportError = string.Empty;
-            xboxtexture.ExportMips(out numMips, out mipsExportError);
+            xboxtexture.DecodeMips(out numMips, out mipsExportError);
             if (numMips <= 0)
             {
                 MessageBox.Show($"Mips Count Was {numMips}", "Export Error - Mips Count Too Low", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -16,13 +16,16 @@ namespace RetroStrike.Pbl
 {
     public class PblFile
     {
+        #region Properties
         public DSKFile OwnerDSKFile { get; set; }
-
         /// <summary>
         /// This stream should be the same as the RootChunk's DataStream
         /// </summary>
         public Stream MainPBLFileStream { get; internal set; }
         public PblChunk RootChunk { get; internal set; }
+        #endregion
+
+        #region CTORS
         public PblFile(DSKFile owner, Stream xIn) : this(owner)
         {
             this.MainPBLFileStream = xIn;
@@ -31,6 +34,18 @@ namespace RetroStrike.Pbl
         {
             this.OwnerDSKFile = owner;
         }
+        #endregion
+
+        #region Reading
+        public void Read()
+        {
+            PblChunk root = new PblChunk(this.MainPBLFileStream, this, null);
+            root.Read();
+            this.RootChunk = root;
+        }
+        #endregion
+
+        #region Methods
         public PblFile Copy()
         {
             PblFile newFile = new PblFile(this.OwnerDSKFile);
@@ -38,10 +53,10 @@ namespace RetroStrike.Pbl
             newRootChunk.DataStart = this.RootChunk.DataStart;
             newRootChunk.DataEnd = this.RootChunk.DataEnd;
             newFile.MainPBLFileStream = newRootChunk.DataStream;
-            Action<PblChunk, PblChunk> copyChunkChildren = null;
-            copyChunkChildren = (PblChunk source, PblChunk target) =>
+            Action<PblChunk, PblChunk, bool> copyChunkChildren = null;
+            copyChunkChildren = (PblChunk source, PblChunk target, bool copyHeader) =>
             {
-                source.WriteChunkTo(target, false, false);
+                source.WriteChunkTo(target, copyHeader);
                 target.DataStream = newRootChunk.DataStream;
                 target.DataStart = source.DataStart;
                 target.DataEnd = source.DataEnd;
@@ -50,10 +65,10 @@ namespace RetroStrike.Pbl
                     var newChild = PblChunk.CreateBlankMemoryChunk(childChunk.ID);
                     target.Children.Add(newChild);
                     newChild.ParentPBLChunk = target;
-                    copyChunkChildren(childChunk, newChild);
+                    copyChunkChildren(childChunk, newChild, true);
                 }
             };
-            copyChunkChildren(this.RootChunk, newRootChunk);
+            copyChunkChildren(this.RootChunk, newRootChunk, false); //The root chunk already has the header written, so we don't need to copy it.
             newFile.RootChunk = newRootChunk;
             return newFile;
         }
@@ -74,12 +89,6 @@ namespace RetroStrike.Pbl
             toRet.MainPBLFileStream = rootChunk.DataStream;
             return toRet;
         }
-
-        public void Read()
-        {
-            PblChunk root = new PblChunk(this.MainPBLFileStream, this, null);
-            root.Read();
-            this.RootChunk = root;
-        }
+        #endregion
     }
 }

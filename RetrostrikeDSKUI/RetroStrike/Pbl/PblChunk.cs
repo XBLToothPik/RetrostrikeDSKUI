@@ -12,6 +12,8 @@ namespace RetroStrike.Pbl
     {
         #region Constant
         public const int CHUNK_HEADER_SIZE = 8;
+        const int CHUNK_HEADER_ID_OFFSET = 0;
+        const int CHUNK_HEADER_DATALEN_OFFSET = 4;
         #endregion
 
         #region Properties
@@ -108,7 +110,7 @@ namespace RetroStrike.Pbl
         #endregion
 
         #region Writing
-        public void WriteChunkTo(PblChunk targetChunkToWriteTo, bool includeHeaderData = false, bool addAsChild = false, bool setStream = false)
+        public void WriteChunkTo(PblChunk targetChunkToWriteTo, bool includeHeaderData = false)
         {
             var xOut = targetChunkToWriteTo.DataStream;
             long _start = includeHeaderData ? DataStart - CHUNK_HEADER_SIZE : DataStart;
@@ -118,16 +120,10 @@ namespace RetroStrike.Pbl
             int numToCopy = includeHeaderData ? DataLength + CHUNK_HEADER_SIZE : DataLength;
             int numCopied = IOUtils.CopyFromToWithLength(DataStream, xOut, numToCopy);
             numAligned += IOUtils.PadStreamToAlignment(xOut, 4);
-            xOut.Seek(4, SeekOrigin.Begin);
+            xOut.Seek(CHUNK_HEADER_DATALEN_OFFSET, SeekOrigin.Begin);
             targetChunkToWriteTo.DataLength += numCopied + numAligned;
-            Debug.WriteLine($"{this.IDAsString} LEN: {this.DataLength} (TARGET: \"{targetChunkToWriteTo.IDAsString}\" LEN: {targetChunkToWriteTo.DataLength})");
             xOut.Write(BitConverter.GetBytes(targetChunkToWriteTo.DataLength), 0, sizeof(int));
             xOut.Seek(0, SeekOrigin.End);
-            if (addAsChild)
-            {
-                targetChunkToWriteTo.Children.Add(this);
-                this.ParentPBLChunk = targetChunkToWriteTo;
-            }
         }
         #endregion
 
@@ -149,6 +145,8 @@ namespace RetroStrike.Pbl
             Stream xMem = new MemoryStream();
             xMem.Write(BitConverter.GetBytes(newChunk.ID), 0, sizeof(uint));
             xMem.Write(BitConverter.GetBytes(dataSize), 0, sizeof(int));
+            newChunk.DataStart = xMem.Position;
+            newChunk.DataEnd = xMem.Position;
             newChunk.DataStream = xMem;
             return newChunk;
         }
