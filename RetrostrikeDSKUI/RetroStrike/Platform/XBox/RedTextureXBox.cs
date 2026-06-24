@@ -178,6 +178,9 @@ namespace RetroStrike.Platform.XBox
         public bool DecodeMips(out int numMipsDecoded, out string errors)
         {
             numMipsDecoded = 0;
+
+            //TODO: IF the mips are already decoded, return false and error message
+
             if (WasCreatedFromPBLChunk)
             {
                 //

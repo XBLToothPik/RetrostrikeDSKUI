@@ -68,7 +68,7 @@ namespace RetroStrike.Pbl
                     copyChunkChildren(childChunk, newChild, true);
                 }
             };
-            copyChunkChildren(this.RootChunk, newRootChunk, false); //The root chunk already has the header written, so we don't need to copy it.
+            copyChunkChildren(this.RootChunk, newRootChunk, false); //The "newRootChunk" already has the header written, so we don't need to copy it.
             newFile.RootChunk = newRootChunk;
             return newFile;
         }

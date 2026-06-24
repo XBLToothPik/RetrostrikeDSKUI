@@ -153,8 +153,8 @@ namespace RetroStrike.Pbl
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2022:Avoid inexact read with 'Stream.Read'", Justification = "<Pending>")]
         public byte[] GetData(bool includeHeaderData = false)
         {
-            int dataLen = includeHeaderData ? 8 + DataLength : DataLength;
-            long dataPos = includeHeaderData ? 8 + DataStart : DataStart;
+            int dataLen = includeHeaderData ? DataLength + CHUNK_HEADER_SIZE : DataLength;
+            long dataPos = includeHeaderData ? DataStart - CHUNK_HEADER_SIZE : DataStart;
             byte[] _data = new byte[dataLen];
             DataStream.Seek(dataPos, SeekOrigin.Begin);
             DataStream.Read(_data, 0, dataLen);
@@ -166,7 +166,7 @@ namespace RetroStrike.Pbl
         }
         public int CopyDataTo(Stream xOut, bool includeHeaderData = false)
         {
-            long dataPos = includeHeaderData ? 8 + DataStart : DataStart;
+            long dataPos = includeHeaderData ? DataStart - CHUNK_HEADER_SIZE : DataStart;
             DataStream.Seek(dataPos, SeekOrigin.Begin);
             return IOUtils.CopyFromToWithLength(DataStream, xOut, DataLength);
         }
