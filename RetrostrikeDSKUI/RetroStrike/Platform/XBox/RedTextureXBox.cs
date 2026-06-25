@@ -39,8 +39,12 @@ namespace RetroStrike.Platform.XBox
         public short TextureFormatVersion;
         public eTexFormat TextureFormat;
         public float MipBias;
-        public byte[][] MipsData { get; private set; }
-        public bool MipsEncoded { get; private set; } //TODO: If 
+
+
+        public byte[][][] MipsData { get; private set; }
+        public bool MipsEncoded { get; private set; } //TODO:
+        public int NumFaces => RedTextureType == eRedTextureType.CUBEMAP ? 6 : 1;
+
         //public bool MipsProcessed { get; private set; }
         public static RedTextureXBox CreateFromPBLChunk(PblChunk tex_chunk)
         {
@@ -98,9 +102,10 @@ namespace RetroStrike.Platform.XBox
             //Next we'll create the Body chunk (before info because Info contains the body's content size)
             writer = new BinaryWriter(bodyChunkStream);
             writer.Write(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR));
-            writer.Write(MipsData.Sum(mip => mip.Length));
-            for (int i = 0; i < MipsData.Length; i++)
-                writer.Write(MipsData[i]);
+            writer.Write(MipsData.Sum(face => face.Sum(mip => mip.Length)));
+            for (int face = 0; face < MipsData.Length; face++)
+                for (int mip = 0; mip < MipsData[face].Length; mip++)
+                    writer.Write(MipsData[face][mip]);
 
             PblChunk newBodyChunk = PblChunk.CreateNew(bodyChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, (int)(bodyChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE));
 
@@ -157,21 +162,23 @@ namespace RetroStrike.Platform.XBox
         {
             numMipsEncoded = 0;
             errors = string.Empty;
-            for (int mip = 0; mip < this.MaxMaps; mip++)
+            for (int face = 0; face < MipsData.Length; face++)
             {
-                int newMipSize = CalculateBufferSize(this.Width >> mip, this.Height >> mip, this.TextureFormat);
-                byte[] newMipData = new byte[newMipSize];
-                if (EncodeMip_Xbox(ref newMipData, this.MipsData[mip], this.Width >> mip, this.Height >> mip))
+                for (int mip = 0; mip < this.MaxMaps; mip++)
                 {
-                    numMipsEncoded++;
-                    this.MipsData[mip] = newMipData;
+                    int newMipSize = CalculateBufferSize(this.Width >> mip, this.Height >> mip, this.TextureFormat);
+                    byte[] newMipData = new byte[newMipSize];
+                    if (EncodeMip_Xbox(ref newMipData, this.MipsData[face][mip], this.Width >> mip, this.Height >> mip))
+                    {
+                        numMipsEncoded++;
+                        this.MipsData[face][mip] = newMipData;
+                    }
+                    else
+                    {
+                        this.MipsData[mip] = null;
+                        errors += $"Encode Error on Mip index{mip}";
+                    }
                 }
-                else
-                {
-                    this.MipsData[mip] = null;
-                    errors += $"Encode Error on Mip index{mip}";
-                }
-
             }
             if (numMipsEncoded > 0)
             {
@@ -184,7 +191,6 @@ namespace RetroStrike.Platform.XBox
         {
             if (this.TextureFormat == eTexFormat.DXT1 || this.TextureFormat == eTexFormat.DXT3)
             {
-                var sf = GetSquishFlagFromFormat(this.TextureFormat);
                 destination = SquishLib.CompressImage(source, width, height, GetSquishFlagFromFormat(this.TextureFormat));
                 return true;
             }
@@ -193,53 +199,48 @@ namespace RetroStrike.Platform.XBox
                 bool isSwizzled = FormatIsSwizzled(this.TextureFormat);
                 int bpp = FormatBPP(this.TextureFormat); //dont think i need this in here
 
-                for (int mip = 0; mip < this.MipsData.Length; mip++)
+                int bufferSize = CalculateBufferSize(width, height, this.TextureFormat);
+                byte[] _mipBuffer = new byte[bufferSize];
+                byte[] usedBuffer;
+                if (TextureFormat != eTexFormat.P8)
                 {
-                    int bufferSize = CalculateBufferSize(this.Width >> mip, this.Height >> mip, this.TextureFormat);
-                    byte[] _mipBuffer = new byte[bufferSize];
-                    byte[] usedBuffer;
-                    int mipWidth = this.Width >> mip;
-                    int mipHeight = this.Height >> mip;
-                    if (TextureFormat != eTexFormat.P8)
+                    PixelDesc outputPixels = new PixelDesc(this.TextureFormat);
+                    fixed (byte* pDst = _mipBuffer)
                     {
-                        PixelDesc outputPixels = new PixelDesc(this.TextureFormat);
-                        fixed (byte* pDst = _mipBuffer)
+                        for (int y = 0; y < width; y++)
                         {
-                            for (int y = 0; y < mipHeight; y++)
+                            for (int x = 0; x < height; x++)
                             {
-                                for (int x = 0; x < mipWidth; x++)
-                                {
-                                    int color = ImageUtils.GetPixel(MipsData[mip], mipWidth, x, y, false);
-                                    byte* pPixel = pDst + (y * mipWidth + x) * bpp;
+                                int color = ImageUtils.GetPixel(source, width, x, y, false);
+                                byte* pPixel = pDst + (y * width + x) * bpp;
 
-                                    //Non-Xbox maybe?:
-                                    //outputPixels.SetRGBA(pPixel,
-                                    //    (byte)((color >> 16) & 0xFF),  // R  (ARGB: bits 23-16)
-                                    //    (byte)((color >> 8) & 0xFF),  // G  (ARGB: bits 15-8)
-                                    //    (byte)(color & 0xFF),  // B  (ARGB: bits 7-0)
-                                    //    (byte)((color >> 24) & 0xFF)); // A  (ARGB: bits 31-24)
+                                //Non-Xbox maybe?:
+                                //outputPixels.SetRGBA(pPixel,
+                                //    (byte)((color >> 16) & 0xFF),  // R  (ARGB: bits 23-16)
+                                //    (byte)((color >> 8) & 0xFF),  // G  (ARGB: bits 15-8)
+                                //    (byte)(color & 0xFF),  // B  (ARGB: bits 7-0)
+                                //    (byte)((color >> 24) & 0xFF)); // A  (ARGB: bits 31-24)
 
-                                    //XBox is using BGRA 
-                                    outputPixels.SetRGBA(pPixel,
-                                        (byte)(color & 0xFF),  // B → R slot (Xbox BGRA)
-                                        (byte)((color >> 8) & 0xFF),  // G
-                                        (byte)((color >> 16) & 0xFF),  // R → B slot (Xbox BGRA)
-                                        (byte)((color >> 24) & 0xFF)); // A
-                                }
+                                //XBox is using BGRA 
+                                outputPixels.SetRGBA(pPixel,
+                                    (byte)(color & 0xFF),  // B → R slot (Xbox BGRA)
+                                    (byte)((color >> 8) & 0xFF),  // G
+                                    (byte)((color >> 16) & 0xFF),  // R → B slot (Xbox BGRA)
+                                    (byte)((color >> 24) & 0xFF)); // A
                             }
                         }
-                        usedBuffer = _mipBuffer;
                     }
-                    else
-                    {
-                        //Get IndexedPixelArray for Pallet (see TextureLib.cpp:780)
-                        throw new NotImplementedException();
-                    }
-                    SwizzleTexture(usedBuffer, destination, mipWidth, mipHeight, bpp, mipWidth * bpp);
-                    return true;
+                    usedBuffer = _mipBuffer;
                 }
+                else
+                {
+                    //Get IndexedPixelArray for Pallet (see TextureLib.cpp:780)
+                    throw new NotImplementedException();
+                }
+                SwizzleTexture(usedBuffer, destination, width, height, bpp, width * bpp);
+                return true;
+
             }
-            return false;
         }
         //This function can be moved to a more general RedTexture type
         int CalculateBufferSize(int width, int height, eTexFormat texFormat)
@@ -390,7 +391,7 @@ namespace RetroStrike.Platform.XBox
             bool _resizeMipArray = false;
             for (int mip = 0; mip < numMips; mip++)
             {
-                int mipWidth = (int)(toRet.Width>> mip);
+                int mipWidth = (int)(toRet.Width >> mip);
                 int mipHeight = (int)(toRet.Height >> mip);
                 var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
                 _tempMipsData[mip] = mipData;

@@ -167,6 +167,11 @@ namespace RetrostrikeDSKUI
                                 var isDXT = xboxTexture.FormatIsDXT(xboxTexture.TextureFormat);
                                 var isSwizzled = xboxTexture.FormatIsSwizzled(xboxTexture.TextureFormat);
                                 var redTexFormat = xboxTexture.RedTextureType;
+                                var texFormat = xboxTexture.TextureFormat;
+                                if (texFormat == eTexFormat.P8)
+                                {
+
+                                }
                                 if (redTexFormat == RedTextureXBox.eRedTextureType.VOLUME)
                                 {
 
