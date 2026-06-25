@@ -84,6 +84,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             labelMipBias.Text = xboxtexture.MipBias.ToString();
             labelTexFormat.Text = xboxtexture.TextureFormat.ToString();
             labelRedFormat.Text = xboxtexture.RedTextureType.ToString();
+            labelNumFaces.Text = xboxtexture.NumFaces.ToString();
             SetMipsPreviewInfo();
         }
         #endregion
@@ -105,6 +106,8 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                 this.pictureboxMipsPreview.SizeMode = PictureBoxSizeMode.CenterImage;
             buttonMipsPreviewGoLeft.Enabled = mipsPreviewActualIndex > 0;
             buttonMipsPreviewGoRight.Enabled = mipsPreviewActualIndex < xboxtexture.MaxMaps - 1;
+            buttonFacePreviewGoLeft.Enabled = mipsPreviewActualFaceIndex > 0;
+            buttonFacePreviewGoRight.Enabled = mipsPreviewActualFaceIndex < xboxtexture.NumFaces - 1;
         }
         void SetMipsPreviewIndexLabelText(int index, int max, int faceIndex, int maxFaces, int width, int height)
         {
@@ -155,6 +158,24 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         #endregion
 
         #region Button Handlers
+        private void buttonFacePreviewGoLeft_Click(object sender, EventArgs e)
+        {
+            if (mipsPreviewActualFaceIndex > 0)
+            {
+                mipsPreviewActualFaceIndex--;
+                mipsPreviewActualIndex = 0;
+                SetMipsPreviewInfo();
+            }
+        }
+        private void buttonFacePreviewGoRight_Click(object sender, EventArgs e)
+        {
+            if (mipsPreviewActualFaceIndex < xboxtexture.NumFaces - 1)
+            {
+                mipsPreviewActualFaceIndex++;
+                mipsPreviewActualIndex = 0;
+                SetMipsPreviewInfo();
+            }
+        }
         private void buttonMipsPreviewGoLeft_Click(object sender, EventArgs e)
         {
             if (mipsPreviewActualIndex > 0)
@@ -287,8 +308,5 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             }
         }
         #endregion
-
-
-
     }
 }

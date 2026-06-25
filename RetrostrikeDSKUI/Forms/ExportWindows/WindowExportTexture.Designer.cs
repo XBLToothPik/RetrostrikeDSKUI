@@ -31,6 +31,8 @@
             mipsPreviewTitle = new ReaLTaiizor.Controls.MaterialLabel();
             pictureboxMipsPreview = new PictureBox();
             groupBoxMipsPreview = new GroupBox();
+            buttonFacePreviewGoRight = new Button();
+            buttonFacePreviewGoLeft = new Button();
             labelMipsPreviewIndex = new ReaLTaiizor.Controls.MaterialLabel();
             buttonMipsPreviewGoRight = new Button();
             buttonMipsPreviewGoLeft = new Button();
@@ -54,8 +56,6 @@
             labelMipsDesc = new Label();
             labelNumFacesDesc = new Label();
             labelNumFaces = new ReaLTaiizor.Controls.MaterialLabel();
-            button1 = new Button();
-            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).BeginInit();
             groupBoxMipsPreview.SuspendLayout();
             panelBottom.SuspendLayout();
@@ -88,18 +88,38 @@
             // groupBoxMipsPreview
             // 
             groupBoxMipsPreview.BackColor = Color.Transparent;
-            groupBoxMipsPreview.Controls.Add(button2);
-            groupBoxMipsPreview.Controls.Add(button1);
+            groupBoxMipsPreview.Controls.Add(buttonFacePreviewGoRight);
+            groupBoxMipsPreview.Controls.Add(buttonFacePreviewGoLeft);
             groupBoxMipsPreview.Controls.Add(labelMipsPreviewIndex);
             groupBoxMipsPreview.Controls.Add(buttonMipsPreviewGoRight);
             groupBoxMipsPreview.Controls.Add(buttonMipsPreviewGoLeft);
             groupBoxMipsPreview.Controls.Add(mipsPreviewTitle);
             groupBoxMipsPreview.Controls.Add(pictureboxMipsPreview);
-            groupBoxMipsPreview.Location = new Point(219, 42);
+            groupBoxMipsPreview.Location = new Point(219, 37);
             groupBoxMipsPreview.Name = "groupBoxMipsPreview";
             groupBoxMipsPreview.Size = new Size(124, 176);
             groupBoxMipsPreview.TabIndex = 7;
             groupBoxMipsPreview.TabStop = false;
+            // 
+            // buttonFacePreviewGoRight
+            // 
+            buttonFacePreviewGoRight.Location = new Point(62, 117);
+            buttonFacePreviewGoRight.Name = "buttonFacePreviewGoRight";
+            buttonFacePreviewGoRight.Size = new Size(58, 23);
+            buttonFacePreviewGoRight.TabIndex = 24;
+            buttonFacePreviewGoRight.Text = "Face >";
+            buttonFacePreviewGoRight.UseVisualStyleBackColor = true;
+            buttonFacePreviewGoRight.Click += buttonFacePreviewGoRight_Click;
+            // 
+            // buttonFacePreviewGoLeft
+            // 
+            buttonFacePreviewGoLeft.Location = new Point(4, 117);
+            buttonFacePreviewGoLeft.Name = "buttonFacePreviewGoLeft";
+            buttonFacePreviewGoLeft.Size = new Size(58, 23);
+            buttonFacePreviewGoLeft.TabIndex = 30;
+            buttonFacePreviewGoLeft.Text = "< Face";
+            buttonFacePreviewGoLeft.UseVisualStyleBackColor = true;
+            buttonFacePreviewGoLeft.Click += buttonFacePreviewGoLeft_Click;
             // 
             // labelMipsPreviewIndex
             // 
@@ -139,7 +159,7 @@
             // 
             labelMips.Depth = 0;
             labelMips.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelMips.Location = new Point(130, 127);
+            labelMips.Location = new Point(130, 170);
             labelMips.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelMips.Name = "labelMips";
             labelMips.Size = new Size(74, 19);
@@ -160,7 +180,7 @@
             // 
             labelHeightDesc.AutoSize = true;
             labelHeightDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelHeightDesc.Location = new Point(6, 68);
+            labelHeightDesc.Location = new Point(6, 66);
             labelHeightDesc.Name = "labelHeightDesc";
             labelHeightDesc.Size = new Size(74, 25);
             labelHeightDesc.TabIndex = 11;
@@ -170,7 +190,7 @@
             // 
             labelMipBiasDesc.AutoSize = true;
             labelMipBiasDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelMipBiasDesc.Location = new Point(6, 149);
+            labelMipBiasDesc.Location = new Point(6, 116);
             labelMipBiasDesc.Name = "labelMipBiasDesc";
             labelMipBiasDesc.Size = new Size(93, 25);
             labelMipBiasDesc.TabIndex = 14;
@@ -180,18 +200,18 @@
             // 
             labelHeight.Depth = 0;
             labelHeight.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelHeight.Location = new Point(130, 73);
+            labelHeight.Location = new Point(130, 71);
             labelHeight.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelHeight.Name = "labelHeight";
             labelHeight.Size = new Size(74, 19);
             labelHeight.TabIndex = 16;
-            labelHeight.Text = "512";
+            labelHeight.Text = "1080";
             // 
             // labelDepth
             // 
             labelDepth.Depth = 0;
             labelDepth.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelDepth.Location = new Point(130, 101);
+            labelDepth.Location = new Point(130, 96);
             labelDepth.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelDepth.Name = "labelDepth";
             labelDepth.Size = new Size(74, 15);
@@ -202,18 +222,18 @@
             // 
             labelMipBias.Depth = 0;
             labelMipBias.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelMipBias.Location = new Point(130, 154);
+            labelMipBias.Location = new Point(130, 121);
             labelMipBias.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelMipBias.Name = "labelMipBias";
             labelMipBias.Size = new Size(74, 19);
             labelMipBias.TabIndex = 18;
-            labelMipBias.Text = "0.75";
+            labelMipBias.Text = "0";
             // 
             // labelTexFormatDesc
             // 
             labelTexFormatDesc.AutoSize = true;
             labelTexFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelTexFormatDesc.Location = new Point(3, 224);
+            labelTexFormatDesc.Location = new Point(7, 215);
             labelTexFormatDesc.Name = "labelTexFormatDesc";
             labelTexFormatDesc.Size = new Size(118, 25);
             labelTexFormatDesc.TabIndex = 19;
@@ -223,7 +243,7 @@
             // 
             labelTexFormat.Depth = 0;
             labelTexFormat.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelTexFormat.Location = new Point(127, 229);
+            labelTexFormat.Location = new Point(131, 220);
             labelTexFormat.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelTexFormat.Name = "labelTexFormat";
             labelTexFormat.Size = new Size(200, 19);
@@ -234,7 +254,7 @@
             // 
             labelRedFormatDesc.AutoSize = true;
             labelRedFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelRedFormatDesc.Location = new Point(6, 199);
+            labelRedFormatDesc.Location = new Point(6, 190);
             labelRedFormatDesc.Name = "labelRedFormatDesc";
             labelRedFormatDesc.Size = new Size(119, 25);
             labelRedFormatDesc.TabIndex = 21;
@@ -255,7 +275,7 @@
             // 
             labelRedFormat.Depth = 0;
             labelRedFormat.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelRedFormat.Location = new Point(130, 204);
+            labelRedFormat.Location = new Point(130, 195);
             labelRedFormat.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelRedFormat.Name = "labelRedFormat";
             labelRedFormat.Size = new Size(83, 19);
@@ -269,9 +289,9 @@
             panelBottom.Controls.Add(buttonCancel);
             panelBottom.Controls.Add(buttonExportImage);
             panelBottom.Dock = DockStyle.Bottom;
-            panelBottom.Location = new Point(3, 390);
+            panelBottom.Location = new Point(3, 244);
             panelBottom.Name = "panelBottom";
-            panelBottom.Size = new Size(419, 29);
+            panelBottom.Size = new Size(342, 29);
             panelBottom.TabIndex = 25;
             // 
             // buttonExportMips
@@ -288,7 +308,7 @@
             // buttonCancel
             // 
             buttonCancel.AutoSize = true;
-            buttonCancel.Location = new Point(268, 2);
+            buttonCancel.Location = new Point(279, 2);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(59, 23);
             buttonCancel.TabIndex = 29;
@@ -310,7 +330,7 @@
             // 
             labelDepthDesc.AutoSize = true;
             labelDepthDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelDepthDesc.Location = new Point(6, 96);
+            labelDepthDesc.Location = new Point(6, 91);
             labelDepthDesc.Name = "labelDepthDesc";
             labelDepthDesc.Size = new Size(70, 25);
             labelDepthDesc.TabIndex = 26;
@@ -320,7 +340,7 @@
             // 
             labelMipsDesc.AutoSize = true;
             labelMipsDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelMipsDesc.Location = new Point(6, 123);
+            labelMipsDesc.Location = new Point(6, 166);
             labelMipsDesc.Name = "labelMipsDesc";
             labelMipsDesc.Size = new Size(60, 25);
             labelMipsDesc.TabIndex = 27;
@@ -330,47 +350,29 @@
             // 
             labelNumFacesDesc.AutoSize = true;
             labelNumFacesDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelNumFacesDesc.Location = new Point(6, 174);
+            labelNumFacesDesc.Location = new Point(6, 141);
             labelNumFacesDesc.Name = "labelNumFacesDesc";
-            labelNumFacesDesc.Size = new Size(93, 25);
+            labelNumFacesDesc.Size = new Size(72, 25);
             labelNumFacesDesc.TabIndex = 28;
-            labelNumFacesDesc.Text = "Mip Bias:";
+            labelNumFacesDesc.Text = "Faces:";
             // 
             // labelNumFaces
             // 
             labelNumFaces.Depth = 0;
             labelNumFaces.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            labelNumFaces.Location = new Point(130, 181);
+            labelNumFaces.Location = new Point(130, 148);
             labelNumFaces.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelNumFaces.Name = "labelNumFaces";
             labelNumFaces.Size = new Size(74, 19);
             labelNumFaces.TabIndex = 29;
             labelNumFaces.Text = "6";
             // 
-            // button1
-            // 
-            button1.Location = new Point(4, 117);
-            button1.Name = "button1";
-            button1.Size = new Size(58, 23);
-            button1.TabIndex = 30;
-            button1.Text = "< Face";
-            button1.UseVisualStyleBackColor = true;
-            // 
-            // button2
-            // 
-            button2.Location = new Point(62, 117);
-            button2.Name = "button2";
-            button2.Size = new Size(58, 23);
-            button2.TabIndex = 24;
-            button2.Text = "Face >";
-            button2.UseVisualStyleBackColor = true;
-            // 
             // WindowExportTexture
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            ClientSize = new Size(425, 422);
+            ClientSize = new Size(348, 276);
             Controls.Add(labelNumFaces);
             Controls.Add(labelNumFacesDesc);
             Controls.Add(labelMipsDesc);
@@ -392,6 +394,7 @@
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
             MaximizeBox = false;
+            MaximumSize = new Size(348, 276);
             MinimizeBox = false;
             Name = "WindowExportTexture";
             Padding = new Padding(3, 24, 3, 3);
@@ -432,9 +435,9 @@
         private ReaLTaiizor.Controls.PoisonDropDownButton buttonCancel;
         private ReaLTaiizor.Controls.PoisonDropDownButton buttonExportImage;
         private ReaLTaiizor.Controls.PoisonDropDownButton buttonExportMips;
-        private Button button1;
+        private Button buttonFacePreviewGoLeft;
         private Label labelNumFacesDesc;
         private ReaLTaiizor.Controls.MaterialLabel labelNumFaces;
-        private Button button2;
+        private Button buttonFacePreviewGoRight;
     }
 }
