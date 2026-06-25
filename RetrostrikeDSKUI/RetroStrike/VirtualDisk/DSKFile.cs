@@ -1,9 +1,9 @@
 ﻿using ImageMagick;
+using RetroStrike.Enum;
 using RetroStrike.Pbl;
 using RetroStrike.Platform.XBox;
 using RetroStrike.Utils;
 using RetrostrikeDSKUI.Application;
-using RetrostrikeDSKUI.RetroStrike;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -274,14 +274,19 @@ namespace RetroStrike.VirtualDisk
             int depth = (int)targetRFI.CustomData["tex_depth"];
             int version = (int)targetRFI.CustomData["tex_formatversion"];
             
-            RedTextureXBox.eXBoxD3DFormat d3dFormat = (RedTextureXBox.eXBoxD3DFormat)targetRFI.CustomData["tex_d3dformat"];
+            eTexFormat texFormat = (eTexFormat)targetRFI.CustomData["tex_format"];
             RedTextureXBox.eRedTextureType texType = (RedTextureXBox.eRedTextureType)targetRFI.CustomData["tex_type"];
 
 
-            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, targetRFI.NewIncomingFileName, ref numMips, depth, version, d3dFormat, texType);
+            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, targetRFI.NewIncomingFileName, ref numMips, depth, version, texFormat, texType);
+            string encodeErrors = string.Empty;
+            bool encodeSuccess = texture.EncodeMips(out numMips, out encodeErrors);
+            if (!encodeSuccess)
+            {
+
+            }
             targetRFI.CustomData["tex_maxmaps"] = numMips;
             
-
             PblFile newPblFile = PblFile.CreateFromRootChunk(this, PblChunk.CreateBlankMemoryChunk(Hashing.MakeFNV1A("ucfb")));
             PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
             tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
@@ -290,7 +295,6 @@ namespace RetroStrike.VirtualDisk
             //Reset the processing stage.  The new incoming stream is that of the processed stream and so if the DSK were saved with a new processed item, and then saved again,
             //it wouldn't try processing the stream again (it couldn't because the original stream was closed and replaced with the processsed one), so it should
             //just copy from the NewIncomingFileStream in that case, which is good.
-            //NEXT: !!!!!!!!! Make a debug option in the UI to test all of this (first, output a valid PBL file, then continue with the code here in the DSK)
             //TODO:
             //      1) Add "IsProcessing" to the RFI and update it here (or in the switch)
             //      2) Add "ProcessSuccess" bool to the RFI and update it here with a try statement (or in the switch)
@@ -350,8 +354,8 @@ namespace RetroStrike.VirtualDisk
                     {
                         //A file in the original RFI's type dict with the same namehash already exists
                         errors = $"A file with the name of " +
-                            $"\"{RetroStrikeGlobals.HashResolver.ResolveHash(targetHashToRevertTo, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.All)}\" " +
-                            $"already exists in types \"{RetroStrikeGlobals.HashResolver.ResolveHash(targetRFI.FileTypeOriginal, RetrostrikeDSKUI.RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes)}\"";
+                            $"\"{RetroStrikeGlobals.HashResolver.ResolveHash(targetHashToRevertTo, RetroStrike.HashNameResolver.eHashTypeSelector.All)}\" " +
+                            $"already exists in types \"{RetroStrikeGlobals.HashResolver.ResolveHash(targetRFI.FileTypeOriginal, RetroStrike.HashNameResolver.eHashTypeSelector.FileTypes)}\"";
                         return false;
                     }
                 }

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RetrostrikeDSKUI.RetroStrike.Pbl
+namespace RetroStrike.Pbl
 {
     public class PblTextureFile : PblFile
     {

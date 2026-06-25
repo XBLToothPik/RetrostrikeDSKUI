@@ -7,12 +7,17 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64</Platforms>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.14.0" />
     <PackageReference Include="Magick.NET.SystemDrawing" Version="8.0.23" />
     <PackageReference Include="ReaLTaiizor" Version="3.8.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="RetroStrike\Utils\ImageUtils\" />
   </ItemGroup>
 
 </Project>

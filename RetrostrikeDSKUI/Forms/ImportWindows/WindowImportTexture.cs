@@ -46,7 +46,7 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
             //tex_maxmaps
             //tex_depth
             //tex_formatversion
-            //tex_d3dformat
+            //tex_format
             //tex_type
             //NOTE: We'll let RedTextureXBox handle the MagickImage on the file's stream (to get width, height..etc..)
             //          but we can verify the file is an actual image and everything here before that,

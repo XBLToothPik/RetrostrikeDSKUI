@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RetrostrikeDSKUI.RetroStrike
+namespace RetroStrike
 {
     public static class RetroStrikeGlobals
     {

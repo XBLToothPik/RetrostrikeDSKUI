@@ -1,26 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging.Effects;
-using System.Text;
-using System.Windows.Forms;
-using System.Linq;
+﻿using RetroStrike;
+using RetrostrikeDSKUI.Core;
 using RetrostrikeDSKUI.Application;
+using ReaLTaiizor.Forms;
+using RetroStrike.VirtualDisk;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8604 // Possible null reference argument.
 
-using RetrostrikeDSKUI.Core;
-using static System.Net.Mime.MediaTypeNames;
-using ReaLTaiizor.Forms;
-using RetroStrike.VirtualDisk;
-using RetrostrikeDSKUI.RetroStrike;
-using System.Formats.Tar;
 namespace RetrostrikeDSKUI.Forms.ImportWindows
 {
     public partial class WindowImport : MaterialForm
@@ -104,7 +92,7 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         }
         void GetAssetFileTypes()
         {
-            assetTypes = new AssetTypeObj[RetroStrikeGlobals.HashResolver.TypesHashDict.Count];
+            assetTypes = new AssetTypeObj[RetroStrike.RetroStrikeGlobals.HashResolver.TypesHashDict.Count];
             for (int i = 0; i < assetTypes.Length; i++)
             {
                 assetTypes[i] = new AssetTypeObj()

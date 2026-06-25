@@ -1,6 +1,7 @@
 using ReaLTaiizor.Controls;
 using ReaLTaiizor.Forms;
 using ReaLTaiizor.Manager;
+using RetroStrike;
 using RetroStrike.Pbl;
 using RetroStrike.Platform.XBox;
 using RetroStrike.Utils;
@@ -10,7 +11,6 @@ using RetrostrikeDSKUI.Core;
 using RetrostrikeDSKUI.Forms;
 using RetrostrikeDSKUI.Forms.ImportWindows;
 using RetrostrikeDSKUI.Forms.ExportWindows;
-using RetrostrikeDSKUI.RetroStrike;
 using System.Diagnostics;
 using System.Media;
 using System.Security.Cryptography;
@@ -18,6 +18,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Xml.Schema;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using RetroStrike.Enum;
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 #pragma warning disable CS8604 // Possible null reference argument.
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -114,17 +115,23 @@ namespace RetrostrikeDSKUI
                 string targetOpenFileName = ofd.FileName;
                 using (Stream xIn = File.Open(targetOpenFileName, FileMode.Open))
                 {
-                    int numMips = 10;
+                    int numMips = 1;
                     int depth = 1;
                     int version = 1;
-                    RedTextureXBox.eXBoxD3DFormat d3dFormat = RedTextureXBox.eXBoxD3DFormat.XBOXFMT_DXT1;
+                    eTexFormat texFormat = RedEnumUtils.XBoxTexFormatToeTexFormat(eXBoxTextureFormat.XBOXFMT_A8R8G8B8);
                     RedTextureXBox.eRedTextureType texType = RedTextureXBox.eRedTextureType.TEXTURE;
                     //TODO: NEXT!!! SWIZZLE, COMPRESS and write mip data
-                    RedTextureXBox texture = RedTextureXBox.CreateFromImage(xIn, Path.GetFileNameWithoutExtension(targetOpenFileName), ref numMips, depth, version, d3dFormat, texType);
+                    RedTextureXBox texture = RedTextureXBox.CreateFromImage(xIn, Path.GetFileNameWithoutExtension(targetOpenFileName), ref numMips, depth, version, texFormat, texType);
+                    string encodeErrors = string.Empty;
+                    texture.EncodeMips(out numMips, out encodeErrors);
+                    if (!string.IsNullOrEmpty(encodeErrors))
+                    {
+
+                    }
 
                     PblFile newPblFile = PblFile.CreateFromRootChunk(null, PblChunk.CreateBlankMemoryChunk(BitConverter.ToUInt32(Encoding.ASCII.GetBytes("ucfb"))));
                     PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
-                    tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
+                    tex_Chunk.WriteChunkTo(newPblFile.RootChunk, true);
 
                     newPblFile.MainPBLFileStream.Seek(0, SeekOrigin.Begin);
                     using (Stream xOut = File.Create("output_pbltest.dat"))
@@ -157,8 +164,8 @@ namespace RetrostrikeDSKUI
                             if (texChunk != null)
                             {
                                 RedTextureXBox xboxTexture = RedTextureXBox.CreateFromPBLChunk(texChunk);
-                                var isDXT = xboxTexture.FormatIsDXT((uint)xboxTexture.TextureFormat);
-                                var isSwizzled = xboxTexture.FormatIsSwizzled((uint)xboxTexture.TextureFormat);
+                                var isDXT = xboxTexture.FormatIsDXT(xboxTexture.TextureFormat);
+                                var isSwizzled = xboxTexture.FormatIsSwizzled(xboxTexture.TextureFormat);
                                 var redTexFormat = xboxTexture.RedTextureType;
                                 if (redTexFormat == RedTextureXBox.eRedTextureType.VOLUME)
                                 {
