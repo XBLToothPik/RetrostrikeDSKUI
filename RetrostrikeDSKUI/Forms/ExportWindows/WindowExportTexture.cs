@@ -1,4 +1,5 @@
-﻿using ReaLTaiizor.Forms;
+﻿using ImageMagick;
+using ReaLTaiizor.Forms;
 using RetroStrike.Pbl;
 using RetroStrike.Platform.XBox;
 using RetrostrikeDSKUI.Core;
@@ -24,6 +25,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         #region Fields
         bool _exportSuccess = false;
         int mipsPreviewActualIndex = 0;
+        int mipsPreviewActualFaceIndex = 0;
 
         RFI _targetRFI;
         PblFile _targetPblFile;
@@ -95,8 +97,8 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         {
             int mipWidth = xboxtexture.Width >> mipsPreviewActualIndex;
             int mipHeight = xboxtexture.Height >> mipsPreviewActualIndex;
-            SetMipsPreviewIndexLabelText(mipsPreviewActualIndex, xboxtexture.MaxMaps, mipWidth, mipHeight);
-            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.xboxtexture.MipsData[mipsPreviewActualIndex], mipWidth, mipHeight);
+            SetMipsPreviewIndexLabelText(mipsPreviewActualIndex, xboxtexture.MaxMaps, mipsPreviewActualFaceIndex, xboxtexture.NumFaces, mipWidth, mipHeight);
+            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.xboxtexture.MipsData[mipsPreviewActualFaceIndex][mipsPreviewActualIndex], mipWidth, mipHeight);
             if (mipWidth > this.pictureboxMipsPreview.Size.Width || mipHeight > this.pictureboxMipsPreview.Height)
                 this.pictureboxMipsPreview.SizeMode = PictureBoxSizeMode.StretchImage;
             else
@@ -104,9 +106,9 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             buttonMipsPreviewGoLeft.Enabled = mipsPreviewActualIndex > 0;
             buttonMipsPreviewGoRight.Enabled = mipsPreviewActualIndex < xboxtexture.MaxMaps - 1;
         }
-        void SetMipsPreviewIndexLabelText(int index, int max, int width, int height)
+        void SetMipsPreviewIndexLabelText(int index, int max, int faceIndex, int maxFaces, int width, int height)
         {
-            labelMipsPreviewIndex.Text = $"{index} / {max - 1} ({width}x{height})";
+            labelMipsPreviewIndex.Text = $"{index} / {max - 1} ({width}x{height})\nFace {faceIndex} / {maxFaces - 1}";
         }
         void CreateMipsExportOptionsContextMenuStrip()
         {
@@ -171,40 +173,60 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         }
         private void buttonExportImage_Click(object sender, EventArgs e)
         {
-            SaveFileDialog SFD = new SaveFileDialog();
-            SFD.Title = "Export Texture Image...(MIP0)";
-            SFD.Filter = "Targa Image|*.tga|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp|PNG Image|*.png";
-            SFD.FileName = xboxtexture.TextureName;
-            if (SFD.ShowDialog() == DialogResult.OK)
+            if (this.xboxtexture.MipsData.Length == 1)
             {
-                using (Stream xOut = File.Open(SFD.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+                SaveFileDialog SFD = new SaveFileDialog();
+                SFD.Title = "Export Texture Image...(MIP0)";
+                SFD.Filter = "Targa Image|*.tga|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp|PNG Image|*.png";
+                SFD.FileName = xboxtexture.TextureName;
+                if (SFD.ShowDialog() == DialogResult.OK)
                 {
-                    int mipWidth = xboxtexture.Width;
-                    int mipHeight = xboxtexture.Height;
-                    var settings = new ImageMagick.PixelReadSettings(
-                        (uint)mipWidth, (uint)mipHeight,
-                        ImageMagick.StorageType.Char,        // 8 bits per channel
-                        ImageMagick.PixelMapping.RGBA);
-
-                    var img = new ImageMagick.MagickImage(this.xboxtexture.MipsData[0], settings);
-                    switch (SFD.FilterIndex)
+                    using (Stream xOut = File.Open(SFD.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
                     {
-                        case 0: //TGA
-                            img.Write(xOut, ImageMagick.MagickFormat.Tga);
-                            break;
-                        case 1: //JPG
-                            img.Write(xOut, ImageMagick.MagickFormat.Jpg);
-                            break;
-                        case 2: //BMP
-                            img.Write(xOut, ImageMagick.MagickFormat.Bmp);
-                            break;
-                        case 3: //PNG
-                            img.Write(xOut, ImageMagick.MagickFormat.Png);
-                            break;
+                        int mipWidth = xboxtexture.Width;
+                        int mipHeight = xboxtexture.Height;
+
+                        MagickFormat fmt = SFD.FilterIndex switch
+                        {
+                            0 => MagickFormat.Tga,
+                            1 => MagickFormat.Jpg,
+                            2 => MagickFormat.Bmp,
+                            3 => MagickFormat.Png,
+                            _ => MagickFormat.Tga //default
+                        };
+                        ExportMip(xOut, this.xboxtexture.MipsData[0][0], xboxtexture.Width, xboxtexture.Height, fmt);
+                    }
+                }
+            }
+            else
+            {
+                FolderBrowserDialog FBD = new FolderBrowserDialog();
+                FBD.Description = "Export Faces";
+                FBD.Multiselect = false;
+                FBD.ShowNewFolderButton = true;
+                if (FBD.ShowDialog() == DialogResult.OK)
+                {
+                    var targetDirectory = FBD.SelectedPath;
+                    for (int face = 0; face < this.xboxtexture.MipsData.Length; face++)
+                    {
+                        using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_face{face}.tga", FileMode.OpenOrCreate))
+                        {
+                            ExportMip(xOut, this.xboxtexture.MipsData[face][0], this.xboxtexture.Width, this.xboxtexture.Height, MagickFormat.Tga);
+                        }
                     }
                 }
             }
         }
+        void ExportMip(Stream xOut, byte[] mipdata, int mipWidth, int mipHeight, MagickFormat fmt)
+        {
+            var settings = new ImageMagick.PixelReadSettings(
+                (uint)mipWidth, (uint)mipHeight,
+                ImageMagick.StorageType.Char,        // 8 bits per channel
+                ImageMagick.PixelMapping.RGBA);
+            var img = new ImageMagick.MagickImage(mipdata, settings);
+            img.Write(xOut, fmt);
+        }
+
         private void buttonExportMips_Click(object sender, EventArgs e)
         {
             buttonExportMips.OpenDropDown();
@@ -220,33 +242,45 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             FBD.ShowPinnedPlaces = true;
             if (FBD.ShowDialog() == DialogResult.OK)
             {
+                MagickFormat fmt = option.Tag switch
+                {
+                    "tga" => MagickFormat.Tga,
+                    "jpg" => MagickFormat.Jpg,
+                    "bmp" => MagickFormat.Bmp,
+                    "png" => MagickFormat.Png,
+                    _ => MagickFormat.Tga //default
+                };
+
                 var targetDirectory = FBD.SelectedPath;
                 string fileType = (string)option.Tag;
-                for (int mip = 0; mip < this.xboxtexture.MipsData.Length; mip++)
+                for (int face = 0; face < this.xboxtexture.MipsData.Length; face++)
                 {
-                    int mipWidth = xboxtexture.Width >> mip;
-                    int mipHeight = xboxtexture.Height >> mip;
-                    var settings = new ImageMagick.PixelReadSettings(
-                        (uint)mipWidth, (uint)mipHeight,
-                        ImageMagick.StorageType.Char,        // 8 bits per channel
-                        ImageMagick.PixelMapping.RGBA);
-                    var imgf = new ImageMagick.MagickImage(this.xboxtexture.MipsData[mip], settings);
-                    using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
+                    for (int mip = 0; mip < this.xboxtexture.MipsData[face].Length; mip++)
                     {
-                        switch (option.Tag as string)
+                        int mipWidth = xboxtexture.Width >> mip;
+                        int mipHeight = xboxtexture.Height >> mip;
+                        var settings = new ImageMagick.PixelReadSettings(
+                            (uint)mipWidth, (uint)mipHeight,
+                            ImageMagick.StorageType.Char,        // 8 bits per channel
+                            ImageMagick.PixelMapping.RGBA);
+                        var imgf = new ImageMagick.MagickImage(this.xboxtexture.MipsData[face][mip], settings);
+                        using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_face{face}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
                         {
-                            case "tga":
-                                imgf.Write(xOut, ImageMagick.MagickFormat.Tga);
-                                break;
-                            case "jpg":
-                                imgf.Write(xOut, ImageMagick.MagickFormat.Jpg);
-                                break;
-                            case "bmp":
-                                imgf.Write(xOut, ImageMagick.MagickFormat.Bmp);
-                                break;
-                            case "png":
-                                imgf.Write(xOut, ImageMagick.MagickFormat.Png);
-                                break;
+                            switch (option.Tag as string)
+                            {
+                                case "tga":
+                                    imgf.Write(xOut, ImageMagick.MagickFormat.Tga);
+                                    break;
+                                case "jpg":
+                                    imgf.Write(xOut, ImageMagick.MagickFormat.Jpg);
+                                    break;
+                                case "bmp":
+                                    imgf.Write(xOut, ImageMagick.MagickFormat.Bmp);
+                                    break;
+                                case "png":
+                                    imgf.Write(xOut, ImageMagick.MagickFormat.Png);
+                                    break;
+                            }
                         }
                     }
                 }

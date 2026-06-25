@@ -11,6 +11,8 @@ using System.Text;
 using static System.Windows.Forms.DataFormats;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Xml.Schema;
+#pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace RetroStrike.Platform.XBox
 {
@@ -162,7 +164,7 @@ namespace RetroStrike.Platform.XBox
         {
             numMipsEncoded = 0;
             errors = string.Empty;
-            for (int face = 0; face < MipsData.Length; face++)
+            for (int face = 0; face < this.NumFaces; face++)
             {
                 for (int mip = 0; mip < this.MaxMaps; mip++)
                 {
@@ -289,34 +291,37 @@ namespace RetroStrike.Platform.XBox
                 int bpp = FormatBPP(this.TextureFormat);
                 int numMips = (this.MaxMaps > 0) ? this.MaxMaps : 1;
 
-                //If it's a CubeMap then the number of faces is DataSize / 6 and we have to iterate over that as their own textures kinda
                 if (RedTextureType == eRedTextureType.TEXTURE)
                 {
-                    MipsData = new byte[numMips][];
+                    MipsData = new byte[this.NumFaces][][];
+                    for (int face = 0; face < this.NumFaces; face++)
+                        MipsData[face] = new byte[numMips][];
 
                     if (isDXT)
                     {
                         int blockBytes = FormatGetBlockBytes(TextureFormat);
                         int sourcePos = 0;
-
-                        for (int mip = 0; mip < numMips; mip++)
+                        for (int face = 0; face < this.NumFaces; face++)
                         {
-                            int mipWidth = Math.Max(1, Width >> mip);
-                            int mipHeight = Math.Max(1, Height >> mip);
-                            int cols = Math.Max(1, (mipWidth + 3) / 4);
-                            int rows = Math.Max(1, (mipHeight + 3) / 4);
-                            int rowSize = cols * blockBytes;
-                            byte[] mipData = new byte[mipWidth * mipHeight * blockBytes];
-
-                            for (int row = 0; row < rows; ++row)
+                            for (int mip = 0; mip < numMips; mip++)
                             {
-                                int destPos = row * rowSize;
-                                Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
+                                int mipWidth = Math.Max(1, Width >> mip);
+                                int mipHeight = Math.Max(1, Height >> mip);
+                                int cols = Math.Max(1, (mipWidth + 3) / 4);
+                                int rows = Math.Max(1, (mipHeight + 3) / 4);
+                                int rowSize = cols * blockBytes;
+                                byte[] mipData = new byte[mipWidth * mipHeight * blockBytes];
+
+                                for (int row = 0; row < rows; ++row)
+                                {
+                                    int destPos = row * rowSize;
+                                    Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
+                                }
+                                var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
+                                MipsData[face][mip] = mipDec;
+                                numMipsDecoded++;
+                                sourcePos += rows * rowSize;
                             }
-                            var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
-                            MipsData[mip] = mipDec;
-                            numMipsDecoded++;
-                            sourcePos += rows * rowSize;
                         }
                     }
                     else
@@ -326,32 +331,35 @@ namespace RetroStrike.Platform.XBox
                         // otherwise alpha-cutout textures and UI atlases shimmer/flicker and
                         // lose their intended coverage.
                         int sourcePos = 0;
-                        for (int mip = 0; mip < numMips; ++mip)
+                        for (int face = 0; face < this.NumFaces; face++)
                         {
-                            int mipWidth = Math.Max(1, Width >> mip);
-                            int mipHeight = Math.Max(1, Height >> mip);
-                            int srcRowPitch = mipWidth * bpp;
-                            int mipSize = srcRowPitch * mipHeight;
-                            byte[] mipData = new byte[mipSize];
-                            if (isSwizzled)
+                            for (int mip = 0; mip < numMips; ++mip)
                             {
-                                byte[] tempMip = new byte[mipSize];
-                                Array.Copy(rawData, sourcePos, mipData, 0, mipSize);
-                                UnswizzleTexture(mipData, tempMip, mipWidth, mipHeight, bpp, srcRowPitch);
-                                mipData = tempMip;
-                            }
-                            else
-                            {
-                                //Haven't actually tested this part because none of the textures in streamed.dsk meet the criteria (NOT DXT && NOT SWIZZLED), but it should work (hopefully)
-                                for (int row = 0; row < mipHeight; ++row)
+                                int mipWidth = Math.Max(1, Width >> mip);
+                                int mipHeight = Math.Max(1, Height >> mip);
+                                int srcRowPitch = mipWidth * bpp;
+                                int mipSize = srcRowPitch * mipHeight;
+                                byte[] mipData = new byte[mipSize];
+                                if (isSwizzled)
                                 {
-                                    int destPos = sourcePos + (row * srcRowPitch);
-                                    Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
+                                    byte[] tempMip = new byte[mipSize];
+                                    Array.Copy(rawData, sourcePos, mipData, 0, mipSize);
+                                    UnswizzleTexture(mipData, tempMip, mipWidth, mipHeight, bpp, srcRowPitch);
+                                    mipData = tempMip;
                                 }
+                                else
+                                {
+                                    //Haven't actually tested this part because none of the textures in streamed.dsk meet the criteria (NOT DXT && NOT SWIZZLED), but it should work (hopefully)
+                                    for (int row = 0; row < mipHeight; ++row)
+                                    {
+                                        int destPos = sourcePos + (row * srcRowPitch);
+                                        Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
+                                    }
+                                }
+                                MipsData[face][mip] = mipData;
+                                numMipsDecoded++;
+                                sourcePos += mipSize;
                             }
-                            MipsData[mip] = mipData;
-                            numMipsDecoded++;
-                            sourcePos += mipSize;
                         }
                     }
                 }
@@ -376,42 +384,47 @@ namespace RetroStrike.Platform.XBox
         {
             //TODO: Eventually maybe allow custom Mips instead of just sizing down the given texture.
             RedTextureXBox toRet = new RedTextureXBox();
-            toRet.TextureName = textureName;
-            byte[][] _tempMipsData = new byte[numMips][];
-
-            toRet.WasCreatedFromImage = true;
-
             MagickImage newImg = new MagickImage(xIn);
+            toRet.TextureName = textureName;
+
             toRet.Width = (short)newImg.Width;
             toRet.Height = (short)newImg.Height;
             toRet.Depth = (short)depth;
             toRet.TextureFormat = texFormat;
             toRet.RedTextureType = redTexType;
             toRet.TextureFormatVersion = (short)texFormatVersion;
+            toRet.WasCreatedFromImage = true;
+
+            byte[][][] _tempMipsData = new byte[toRet.NumFaces][][];
+
             bool _resizeMipArray = false;
-            for (int mip = 0; mip < numMips; mip++)
+            for (int face = 0; face < toRet.NumFaces; face++)
             {
-                int mipWidth = (int)(toRet.Width >> mip);
-                int mipHeight = (int)(toRet.Height >> mip);
-                var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
-                _tempMipsData[mip] = mipData;
-                //Resize img to next mip size ahead of the next loop iteration
-                if (mip + 1 < numMips)
+                for (int mip = 0; mip < numMips; mip++)
                 {
-                    uint nextMipWidth = (uint)((toRet.Width) >> mip);
-                    uint nextMipHeight = (uint)((toRet.Height >> mip));
-                    if (nextMipWidth <= 0 || nextMipHeight <= 0)
+                    int mipWidth = (int)(toRet.Width >> mip);
+                    int mipHeight = (int)(toRet.Height >> mip);
+                    var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
+                    _tempMipsData[face][mip] = mipData;
+                    //Resize img to next mip size ahead of the next loop iteration
+                    if (mip + 1 < numMips)
                     {
-                        _resizeMipArray = true;
-                        numMips = mip;
-                        break;
+                        uint nextMipWidth = (uint)((toRet.Width) >> mip);
+                        uint nextMipHeight = (uint)((toRet.Height >> mip));
+                        if (nextMipWidth <= 0 || nextMipHeight <= 0)
+                        {
+                            _resizeMipArray = true;
+                            numMips = mip;
+                            break;
+                        }
+                        newImg.Resize((uint)nextMipWidth, (uint)nextMipHeight);
                     }
-                    newImg.Resize((uint)nextMipWidth, (uint)nextMipHeight);
                 }
+                if (_resizeMipArray)
+                    Array.Resize(ref _tempMipsData[face], numMips);
             }
-            if (_resizeMipArray)
-                Array.Resize(ref _tempMipsData, numMips);
-            toRet.MaxMaps = (short)_tempMipsData.Length;
+
+            toRet.MaxMaps = (short)_tempMipsData[0].Length;
             toRet.MipsData = _tempMipsData;
             toRet.MipsEncoded = false;
             return toRet;
