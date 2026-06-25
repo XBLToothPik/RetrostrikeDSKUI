@@ -86,6 +86,7 @@ namespace RetroStrike.Platform.XBox
             MemoryStream bodyChunkStream = new MemoryStream();
 
             //Setup constants (can be more than this but this is what we're working with right now)
+            //  ^ There is also PALT for Pallete, but it's not in the encoder yet.
             const string CHUNK_TEX_ID_STR = "tex_";
             const string CHUNK_NAME_ID_STR = "NAME";
             const string CHUNK_INFO_ID_STR = "INFO";

@@ -31,28 +31,28 @@
             buttonImport = new ReaLTaiizor.Controls.PoisonButton();
             panel1 = new Panel();
             poisonButton1 = new ReaLTaiizor.Controls.PoisonButton();
-            groupBox1 = new GroupBox();
-            materialLabel2 = new ReaLTaiizor.Controls.MaterialLabel();
-            numericUpDown3 = new NumericUpDown();
-            label5 = new Label();
-            comboBox2 = new ComboBox();
-            label4 = new Label();
-            label3 = new Label();
-            numericUpDown2 = new NumericUpDown();
-            label2 = new Label();
-            comboBox1 = new ComboBox();
-            numericUpDown1 = new NumericUpDown();
-            label1 = new Label();
-            materialLabel1 = new ReaLTaiizor.Controls.MaterialLabel();
+            groupBoxImportTexture = new GroupBox();
+            labelMipsPreviewHeader = new ReaLTaiizor.Controls.MaterialLabel();
+            updownMipBias = new NumericUpDown();
+            labelMipBiasDesc = new Label();
+            comboBoxTexFormat = new ComboBox();
+            labelTexTypeDesc = new Label();
+            labelTexFormatDesc = new Label();
+            updownMips = new NumericUpDown();
+            labelMipsDesc = new Label();
+            comboBoxTexType = new ComboBox();
+            updownDepth = new NumericUpDown();
+            labelDepthDesc = new Label();
+            labelHeight = new ReaLTaiizor.Controls.MaterialLabel();
             labelWidth = new ReaLTaiizor.Controls.MaterialLabel();
             labelHeightDesc = new Label();
             labelWidthDesc = new Label();
             pictureBoxTexturePreview = new PictureBox();
             panel1.SuspendLayout();
-            groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown3).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
+            groupBoxImportTexture.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)updownMipBias).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)updownMips).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)updownDepth).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxTexturePreview).BeginInit();
             SuspendLayout();
             // 
@@ -85,149 +85,149 @@
             poisonButton1.Text = "Cancel";
             poisonButton1.UseSelectable = true;
             // 
-            // groupBox1
+            // groupBoxImportTexture
             // 
-            groupBox1.Controls.Add(materialLabel2);
-            groupBox1.Controls.Add(numericUpDown3);
-            groupBox1.Controls.Add(label5);
-            groupBox1.Controls.Add(comboBox2);
-            groupBox1.Controls.Add(label4);
-            groupBox1.Controls.Add(label3);
-            groupBox1.Controls.Add(numericUpDown2);
-            groupBox1.Controls.Add(label2);
-            groupBox1.Controls.Add(comboBox1);
-            groupBox1.Controls.Add(numericUpDown1);
-            groupBox1.Controls.Add(label1);
-            groupBox1.Controls.Add(materialLabel1);
-            groupBox1.Controls.Add(labelWidth);
-            groupBox1.Controls.Add(labelHeightDesc);
-            groupBox1.Controls.Add(labelWidthDesc);
-            groupBox1.Controls.Add(pictureBoxTexturePreview);
-            groupBox1.Font = new Font("Segoe UI", 15F);
-            groupBox1.Location = new Point(6, 27);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(320, 226);
-            groupBox1.TabIndex = 2;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Import Texture";
+            groupBoxImportTexture.Controls.Add(labelMipsPreviewHeader);
+            groupBoxImportTexture.Controls.Add(updownMipBias);
+            groupBoxImportTexture.Controls.Add(labelMipBiasDesc);
+            groupBoxImportTexture.Controls.Add(comboBoxTexFormat);
+            groupBoxImportTexture.Controls.Add(labelTexTypeDesc);
+            groupBoxImportTexture.Controls.Add(labelTexFormatDesc);
+            groupBoxImportTexture.Controls.Add(updownMips);
+            groupBoxImportTexture.Controls.Add(labelMipsDesc);
+            groupBoxImportTexture.Controls.Add(comboBoxTexType);
+            groupBoxImportTexture.Controls.Add(updownDepth);
+            groupBoxImportTexture.Controls.Add(labelDepthDesc);
+            groupBoxImportTexture.Controls.Add(labelHeight);
+            groupBoxImportTexture.Controls.Add(labelWidth);
+            groupBoxImportTexture.Controls.Add(labelHeightDesc);
+            groupBoxImportTexture.Controls.Add(labelWidthDesc);
+            groupBoxImportTexture.Controls.Add(pictureBoxTexturePreview);
+            groupBoxImportTexture.Font = new Font("Segoe UI", 15F);
+            groupBoxImportTexture.Location = new Point(6, 27);
+            groupBoxImportTexture.Name = "groupBoxImportTexture";
+            groupBoxImportTexture.Size = new Size(320, 226);
+            groupBoxImportTexture.TabIndex = 2;
+            groupBoxImportTexture.TabStop = false;
+            groupBoxImportTexture.Text = "Import Texture";
             // 
-            // materialLabel2
+            // labelMipsPreviewHeader
             // 
-            materialLabel2.Depth = 0;
-            materialLabel2.Font = new Font("Roboto", 12F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel2.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Caption;
-            materialLabel2.Location = new Point(202, 32);
-            materialLabel2.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel2.Name = "materialLabel2";
-            materialLabel2.Size = new Size(112, 19);
-            materialLabel2.TabIndex = 28;
-            materialLabel2.Text = "Preview";
-            materialLabel2.TextAlign = ContentAlignment.BottomCenter;
+            labelMipsPreviewHeader.Depth = 0;
+            labelMipsPreviewHeader.Font = new Font("Roboto", 12F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelMipsPreviewHeader.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Caption;
+            labelMipsPreviewHeader.Location = new Point(202, 32);
+            labelMipsPreviewHeader.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelMipsPreviewHeader.Name = "labelMipsPreviewHeader";
+            labelMipsPreviewHeader.Size = new Size(112, 19);
+            labelMipsPreviewHeader.TabIndex = 28;
+            labelMipsPreviewHeader.Text = "Preview";
+            labelMipsPreviewHeader.TextAlign = ContentAlignment.BottomCenter;
             // 
-            // numericUpDown3
+            // updownMipBias
             // 
-            numericUpDown3.Font = new Font("Segoe UI", 10F);
-            numericUpDown3.Location = new Point(105, 140);
-            numericUpDown3.Name = "numericUpDown3";
-            numericUpDown3.Size = new Size(91, 25);
-            numericUpDown3.TabIndex = 27;
+            updownMipBias.Font = new Font("Segoe UI", 10F);
+            updownMipBias.Location = new Point(105, 140);
+            updownMipBias.Name = "updownMipBias";
+            updownMipBias.Size = new Size(91, 25);
+            updownMipBias.TabIndex = 27;
             // 
-            // label5
+            // labelMipBiasDesc
             // 
-            label5.AutoSize = true;
-            label5.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label5.Location = new Point(6, 140);
-            label5.Name = "label5";
-            label5.Size = new Size(93, 25);
-            label5.TabIndex = 26;
-            label5.Text = "Mip Bias:";
+            labelMipBiasDesc.AutoSize = true;
+            labelMipBiasDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelMipBiasDesc.Location = new Point(6, 140);
+            labelMipBiasDesc.Name = "labelMipBiasDesc";
+            labelMipBiasDesc.Size = new Size(93, 25);
+            labelMipBiasDesc.TabIndex = 26;
+            labelMipBiasDesc.Text = "Mip Bias:";
             // 
-            // comboBox2
+            // comboBoxTexFormat
             // 
-            comboBox2.Font = new Font("Segoe UI", 10F);
-            comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(130, 196);
-            comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(184, 25);
-            comboBox2.TabIndex = 25;
-            comboBox2.Text = "CUBEMAP";
+            comboBoxTexFormat.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxTexFormat.Font = new Font("Segoe UI", 10F);
+            comboBoxTexFormat.FormattingEnabled = true;
+            comboBoxTexFormat.Location = new Point(130, 196);
+            comboBoxTexFormat.Name = "comboBoxTexFormat";
+            comboBoxTexFormat.Size = new Size(184, 25);
+            comboBoxTexFormat.TabIndex = 25;
             // 
-            // label4
+            // labelTexTypeDesc
             // 
-            label4.AutoSize = true;
-            label4.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label4.Location = new Point(6, 168);
-            label4.Name = "label4";
-            label4.Size = new Size(102, 25);
-            label4.TabIndex = 24;
-            label4.Text = "Tex Type:";
+            labelTexTypeDesc.AutoSize = true;
+            labelTexTypeDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTexTypeDesc.Location = new Point(6, 168);
+            labelTexTypeDesc.Name = "labelTexTypeDesc";
+            labelTexTypeDesc.Size = new Size(102, 25);
+            labelTexTypeDesc.TabIndex = 24;
+            labelTexTypeDesc.Text = "Tex Type:";
             // 
-            // label3
+            // labelTexFormatDesc
             // 
-            label3.AutoSize = true;
-            label3.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label3.Location = new Point(6, 196);
-            label3.Name = "label3";
-            label3.Size = new Size(118, 25);
-            label3.TabIndex = 23;
-            label3.Text = "Tex Format:";
+            labelTexFormatDesc.AutoSize = true;
+            labelTexFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTexFormatDesc.Location = new Point(6, 196);
+            labelTexFormatDesc.Name = "labelTexFormatDesc";
+            labelTexFormatDesc.Size = new Size(118, 25);
+            labelTexFormatDesc.TabIndex = 23;
+            labelTexFormatDesc.Text = "Tex Format:";
             // 
-            // numericUpDown2
+            // updownMips
             // 
-            numericUpDown2.Font = new Font("Segoe UI", 10F);
-            numericUpDown2.Location = new Point(105, 112);
-            numericUpDown2.Name = "numericUpDown2";
-            numericUpDown2.Size = new Size(91, 25);
-            numericUpDown2.TabIndex = 22;
+            updownMips.Font = new Font("Segoe UI", 10F);
+            updownMips.Location = new Point(105, 112);
+            updownMips.Name = "updownMips";
+            updownMips.Size = new Size(91, 25);
+            updownMips.TabIndex = 22;
             // 
-            // label2
+            // labelMipsDesc
             // 
-            label2.AutoSize = true;
-            label2.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label2.Location = new Point(6, 112);
-            label2.Name = "label2";
-            label2.Size = new Size(60, 25);
-            label2.TabIndex = 21;
-            label2.Text = "Mips:";
+            labelMipsDesc.AutoSize = true;
+            labelMipsDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelMipsDesc.Location = new Point(6, 112);
+            labelMipsDesc.Name = "labelMipsDesc";
+            labelMipsDesc.Size = new Size(60, 25);
+            labelMipsDesc.TabIndex = 21;
+            labelMipsDesc.Text = "Mips:";
             // 
-            // comboBox1
+            // comboBoxTexType
             // 
-            comboBox1.Font = new Font("Segoe UI", 10F);
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(130, 168);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(184, 25);
-            comboBox1.TabIndex = 20;
-            comboBox1.Text = "XBOXFMT_D16_LOCKABLE";
+            comboBoxTexType.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxTexType.Font = new Font("Segoe UI", 10F);
+            comboBoxTexType.FormattingEnabled = true;
+            comboBoxTexType.Location = new Point(130, 168);
+            comboBoxTexType.Name = "comboBoxTexType";
+            comboBoxTexType.Size = new Size(184, 25);
+            comboBoxTexType.TabIndex = 20;
             // 
-            // numericUpDown1
+            // updownDepth
             // 
-            numericUpDown1.Font = new Font("Segoe UI", 10F);
-            numericUpDown1.Location = new Point(105, 84);
-            numericUpDown1.Name = "numericUpDown1";
-            numericUpDown1.Size = new Size(91, 25);
-            numericUpDown1.TabIndex = 19;
+            updownDepth.Font = new Font("Segoe UI", 10F);
+            updownDepth.Location = new Point(105, 84);
+            updownDepth.Name = "updownDepth";
+            updownDepth.Size = new Size(91, 25);
+            updownDepth.TabIndex = 19;
             // 
-            // label1
+            // labelDepthDesc
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label1.Location = new Point(6, 84);
-            label1.Name = "label1";
-            label1.Size = new Size(70, 25);
-            label1.TabIndex = 18;
-            label1.Text = "Depth:";
+            labelDepthDesc.AutoSize = true;
+            labelDepthDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelDepthDesc.Location = new Point(6, 84);
+            labelDepthDesc.Name = "labelDepthDesc";
+            labelDepthDesc.Size = new Size(70, 25);
+            labelDepthDesc.TabIndex = 18;
+            labelDepthDesc.Text = "Depth:";
             // 
-            // materialLabel1
+            // labelHeight
             // 
-            materialLabel1.Depth = 0;
-            materialLabel1.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel1.Location = new Point(105, 63);
-            materialLabel1.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
-            materialLabel1.Name = "materialLabel1";
-            materialLabel1.Size = new Size(91, 19);
-            materialLabel1.TabIndex = 17;
-            materialLabel1.Text = "1080";
+            labelHeight.Depth = 0;
+            labelHeight.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            labelHeight.Location = new Point(105, 63);
+            labelHeight.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
+            labelHeight.Name = "labelHeight";
+            labelHeight.Size = new Size(91, 19);
+            labelHeight.TabIndex = 17;
+            labelHeight.Text = "1080";
             // 
             // labelWidth
             // 
@@ -274,7 +274,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(332, 286);
-            Controls.Add(groupBox1);
+            Controls.Add(groupBoxImportTexture);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
@@ -287,11 +287,11 @@
             TopMost = true;
             Shown += WindowImportTexture_Shown;
             panel1.ResumeLayout(false);
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown3).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
+            groupBoxImportTexture.ResumeLayout(false);
+            groupBoxImportTexture.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)updownMipBias).EndInit();
+            ((System.ComponentModel.ISupportInitialize)updownMips).EndInit();
+            ((System.ComponentModel.ISupportInitialize)updownDepth).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxTexturePreview).EndInit();
             ResumeLayout(false);
         }
@@ -301,22 +301,22 @@
         private ReaLTaiizor.Controls.PoisonButton buttonImport;
         private Panel panel1;
         private ReaLTaiizor.Controls.PoisonButton poisonButton1;
-        private GroupBox groupBox1;
+        private GroupBox groupBoxImportTexture;
         private PictureBox pictureBoxTexturePreview;
         private Label labelWidthDesc;
         private Label labelHeightDesc;
-        private Label label1;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel1;
+        private Label labelDepthDesc;
+        private ReaLTaiizor.Controls.MaterialLabel labelHeight;
         private ReaLTaiizor.Controls.MaterialLabel labelWidth;
-        private NumericUpDown numericUpDown2;
-        private Label label2;
-        private ComboBox comboBox1;
-        private NumericUpDown numericUpDown1;
-        private Label label3;
-        private ComboBox comboBox2;
-        private Label label4;
-        private NumericUpDown numericUpDown3;
-        private Label label5;
-        private ReaLTaiizor.Controls.MaterialLabel materialLabel2;
+        private NumericUpDown updownMips;
+        private Label labelMipsDesc;
+        private ComboBox comboBoxTexType;
+        private NumericUpDown updownDepth;
+        private Label labelTexFormatDesc;
+        private ComboBox comboBoxTexFormat;
+        private Label labelTexTypeDesc;
+        private NumericUpDown updownMipBias;
+        private Label labelMipBiasDesc;
+        private ReaLTaiizor.Controls.MaterialLabel labelMipsPreviewHeader;
     }
 }

@@ -9,6 +9,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace RetrostrikeDSKUI.Forms.ImportWindows
 {
@@ -92,8 +93,7 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         }
         void ITypeImportWindow.LoadDataIntoView()
         {
-            MagickImage img = new MagickImage();
-
+            PopulateView();
             SetWindowTitle(Path.GetFileName(TargetFileName));
 
             //TODO: If it wasn't valid, then we need to show the user that information in some way
@@ -126,7 +126,10 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         {
             this.Text = $"{WindowTitle} - {titleExtension}";
         }
-
+        void PopulateView()
+        {
+            //combobox.DataSource = Enum.GetValues(typeof(MyEnum));
+        }
         #endregion
 
 
