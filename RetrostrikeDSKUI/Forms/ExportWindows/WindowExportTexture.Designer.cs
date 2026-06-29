@@ -256,9 +256,9 @@
             labelRedFormatDesc.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point, 0);
             labelRedFormatDesc.Location = new Point(6, 190);
             labelRedFormatDesc.Name = "labelRedFormatDesc";
-            labelRedFormatDesc.Size = new Size(119, 25);
+            labelRedFormatDesc.Size = new Size(96, 25);
             labelRedFormatDesc.TabIndex = 21;
-            labelRedFormatDesc.Text = "Red Format:";
+            labelRedFormatDesc.Text = "Tex Type";
             // 
             // labelWidth
             // 
@@ -297,7 +297,7 @@
             // buttonExportMips
             // 
             buttonExportMips.AutoSize = true;
-            buttonExportMips.Location = new Point(126, 2);
+            buttonExportMips.Location = new Point(126, 1);
             buttonExportMips.Name = "buttonExportMips";
             buttonExportMips.Size = new Size(118, 23);
             buttonExportMips.TabIndex = 30;
@@ -399,6 +399,7 @@
             Name = "WindowExportTexture";
             Padding = new Padding(3, 24, 3, 3);
             Sizable = false;
+            StartPosition = FormStartPosition.CenterParent;
             Text = "Export Texture - N/A";
             TopMost = true;
             ((System.ComponentModel.ISupportInitialize)pictureboxMipsPreview).EndInit();

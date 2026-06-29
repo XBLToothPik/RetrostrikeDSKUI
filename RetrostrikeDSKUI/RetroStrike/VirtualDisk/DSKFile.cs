@@ -273,12 +273,13 @@ namespace RetroStrike.VirtualDisk
             int numMips = (int)targetRFI.CustomData["tex_maxmaps"];
             int depth = (int)targetRFI.CustomData["tex_depth"];
             int version = (int)targetRFI.CustomData["tex_formatversion"];
-            
+            int width = (int)targetRFI.CustomData["tex_width"];
+            int height = (int)targetRFI.CustomData["tex_height"];
             eTexFormat texFormat = (eTexFormat)targetRFI.CustomData["tex_format"];
-            RedTextureXBox.eRedTextureType texType = (RedTextureXBox.eRedTextureType)targetRFI.CustomData["tex_type"];
+            eTexType texType = (eTexType)targetRFI.CustomData["tex_type"];
+            RedTextureXBox.cFaceData[] faceData = (RedTextureXBox.cFaceData[])targetRFI.CustomData["face_data"];
 
-
-            RedTextureXBox texture = RedTextureXBox.CreateFromImage(targetRFI.NewIncomingFileStream, targetRFI.NewIncomingFileName, ref numMips, depth, version, texFormat, texType);
+            RedTextureXBox texture = RedTextureXBox.CreateFromFaceData(faceData, targetRFI.NewIncomingFileName, width, height,numMips, depth, version, texFormat, texType);
             string encodeErrors = string.Empty;
             bool encodeSuccess = texture.EncodeMips(out numMips, out encodeErrors);
             if (!encodeSuccess)

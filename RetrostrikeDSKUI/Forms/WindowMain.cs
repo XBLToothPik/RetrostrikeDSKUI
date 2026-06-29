@@ -19,6 +19,7 @@ using System.Text.Json.Serialization;
 using System.Xml.Schema;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using RetroStrike.Enum;
+using ImageMagick;
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 #pragma warning disable CS8604 // Possible null reference argument.
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -115,13 +116,30 @@ namespace RetrostrikeDSKUI
                 string targetOpenFileName = ofd.FileName;
                 using (Stream xIn = File.Open(targetOpenFileName, FileMode.Open))
                 {
+                    MagickImage img = new MagickImage(xIn);
+                    uint width = img.Width;
+                    uint height = img.Height;
                     int numMips = 1;
                     int depth = 1;
                     int version = 1;
                     eTexFormat texFormat = RedEnumUtils.XBoxTexFormatToeTexFormat(eXBoxTextureFormat.XBOXFMT_A8R8G8B8);
-                    RedTextureXBox.eRedTextureType texType = RedTextureXBox.eRedTextureType.TEXTURE;
-                    //TODO: NEXT!!! SWIZZLE, COMPRESS and write mip data
-                    RedTextureXBox texture = RedTextureXBox.CreateFromImage(xIn, Path.GetFileNameWithoutExtension(targetOpenFileName), ref numMips, depth, version, texFormat, texType);
+                    eTexType texType = eTexType.TEXTURE;
+                    RedTextureXBox.cFaceData[] faces = null;
+                    if (texType == eTexType.CUBEMAP)
+                    {
+                        faces = new RedTextureXBox.cFaceData[6];
+                        for (int face = 0; face < faces.Length;face++)
+                        {
+                            faces[face] = RetroStrike.Image.ImageUtils.CreateRawFaceDataFromImage(img, ref numMips, texType);
+                        }
+                    }
+                    else
+                    {
+                        faces = new RedTextureXBox.cFaceData[1];
+                        faces[0] = RetroStrike.Image.ImageUtils.CreateRawFaceDataFromImage(img, ref numMips, texType);
+                    }
+
+                    RedTextureXBox texture = RedTextureXBox.CreateFromFaceData(faces, Path.GetFileNameWithoutExtension(targetOpenFileName), (int)width, (int)height, numMips, depth, version, texFormat, texType);
                     string encodeErrors = string.Empty;
                     texture.EncodeMips(out numMips, out encodeErrors);
                     if (!string.IsNullOrEmpty(encodeErrors))
@@ -168,11 +186,16 @@ namespace RetrostrikeDSKUI
                                 var isSwizzled = xboxTexture.FormatIsSwizzled(xboxTexture.TextureFormat);
                                 var redTexFormat = xboxTexture.RedTextureType;
                                 var texFormat = xboxTexture.TextureFormat;
+                                float mipBias = xboxTexture.MipBias;
+                                if (mipBias != 0)
+                                {
+
+                                }    
                                 if (texFormat == eTexFormat.P8)
                                 {
 
                                 }
-                                if (redTexFormat == RedTextureXBox.eRedTextureType.VOLUME)
+                                if (redTexFormat == eTexType.VOLUME)
                                 {
 
                                 }

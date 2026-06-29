@@ -48,6 +48,7 @@
             labelHeightDesc = new Label();
             labelWidthDesc = new Label();
             pictureBoxTexturePreview = new PictureBox();
+            buttonEditFacesOrMips = new ReaLTaiizor.Controls.PoisonButton();
             panel1.SuspendLayout();
             groupBoxImportTexture.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)updownMipBias).BeginInit();
@@ -58,16 +59,18 @@
             // 
             // buttonImport
             // 
-            buttonImport.Location = new Point(3, 3);
+            buttonImport.Location = new Point(3, 2);
             buttonImport.Name = "buttonImport";
-            buttonImport.Size = new Size(245, 23);
+            buttonImport.Size = new Size(121, 23);
             buttonImport.TabIndex = 0;
             buttonImport.Text = "Import";
             buttonImport.UseSelectable = true;
+            buttonImport.Click += buttonImport_Click;
             // 
             // panel1
             // 
             panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(buttonEditFacesOrMips);
             panel1.Controls.Add(poisonButton1);
             panel1.Controls.Add(buttonImport);
             panel1.Dock = DockStyle.Bottom;
@@ -126,6 +129,7 @@
             // 
             // updownMipBias
             // 
+            updownMipBias.DecimalPlaces = 2;
             updownMipBias.Font = new Font("Segoe UI", 10F);
             updownMipBias.Location = new Point(105, 140);
             updownMipBias.Name = "updownMipBias";
@@ -151,6 +155,7 @@
             comboBoxTexFormat.Name = "comboBoxTexFormat";
             comboBoxTexFormat.Size = new Size(184, 25);
             comboBoxTexFormat.TabIndex = 25;
+            comboBoxTexFormat.SelectedIndexChanged += comboBoxTexFormat_SelectedIndexChanged;
             // 
             // labelTexTypeDesc
             // 
@@ -176,9 +181,11 @@
             // 
             updownMips.Font = new Font("Segoe UI", 10F);
             updownMips.Location = new Point(105, 112);
+            updownMips.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             updownMips.Name = "updownMips";
             updownMips.Size = new Size(91, 25);
             updownMips.TabIndex = 22;
+            updownMips.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // labelMipsDesc
             // 
@@ -199,6 +206,7 @@
             comboBoxTexType.Name = "comboBoxTexType";
             comboBoxTexType.Size = new Size(184, 25);
             comboBoxTexType.TabIndex = 20;
+            comboBoxTexType.SelectedIndexChanged += comboBoxTexType_SelectedIndexChanged;
             // 
             // updownDepth
             // 
@@ -269,6 +277,15 @@
             pictureBoxTexturePreview.TabIndex = 0;
             pictureBoxTexturePreview.TabStop = false;
             // 
+            // buttonEditFacesOrMips
+            // 
+            buttonEditFacesOrMips.Location = new Point(129, 2);
+            buttonEditFacesOrMips.Name = "buttonEditFacesOrMips";
+            buttonEditFacesOrMips.Size = new Size(121, 23);
+            buttonEditFacesOrMips.TabIndex = 3;
+            buttonEditFacesOrMips.Text = "Edit Mips";
+            buttonEditFacesOrMips.UseSelectable = true;
+            // 
             // WindowImportTexture
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -283,6 +300,8 @@
             MinimizeBox = false;
             Name = "WindowImportTexture";
             Padding = new Padding(3, 24, 3, 3);
+            Sizable = false;
+            StartPosition = FormStartPosition.CenterParent;
             Text = "WindowImportTexture";
             TopMost = true;
             Shown += WindowImportTexture_Shown;
@@ -318,5 +337,6 @@
         private NumericUpDown updownMipBias;
         private Label labelMipBiasDesc;
         private ReaLTaiizor.Controls.MaterialLabel labelMipsPreviewHeader;
+        private ReaLTaiizor.Controls.PoisonButton buttonEditFacesOrMips;
     }
 }

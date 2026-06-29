@@ -1,8 +1,10 @@
 ﻿using ImageMagick;
 using ImageMagick.Drawing;
 using ReaLTaiizor.Forms;
+using RetroStrike.Enum;
 using RetroStrike.Platform.XBox;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,6 +12,9 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+#pragma warning disable CS8605 // Unboxing a possibly null value.
+
+using RetroStrike.Image;
 
 namespace RetrostrikeDSKUI.Forms.ImportWindows
 {
@@ -17,6 +22,28 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
     {
         #region Const
         public const string WindowTitle = "Import Texture";
+        #endregion
+
+        #region Struct
+        struct sTexFormatItem
+        {
+            public string FriendlyName;
+            public eTexFormat TexFormat;
+            public override string ToString()
+            {
+                return FriendlyName;
+            }
+        }
+        struct sTexTypeItem
+        {
+            public string FriendlyName;
+            public eTexType TexType;
+
+            public override string ToString()
+            {
+                return FriendlyName;
+            }
+        }
         #endregion
 
         #region Fields
@@ -52,18 +79,15 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
             //NOTE: We'll let RedTextureXBox handle the MagickImage on the file's stream (to get width, height..etc..)
             //          but we can verify the file is an actual image and everything here before that,
 
-            //TODO: NEXT!!!!!!!!: Name all of the controls on the form.  Then:
-            //          1) calculate max num of mips for the numeric updown
-            //          2) populate the tex format combobox's with the items for the platform type
-            //          3) populate the tex type combobox (TEXTURE, CUBEMAP, VOLUME)
+            //TODO:
+            //          1) calculate max num of mips for the numeric updown [done]
+            //          2) populate the tex format combobox's with the items for the platform type [done]
+            //          3) populate the tex type combobox (TEXTURE, CUBEMAP, VOLUME) [done]
             //          4) When click cancel, close the active stream
             //          5) Create the RFI.  Set it's custom data, add to DSKFile
             //          6) Finish the ProcessNewRFIAsTexture in the DSKFile.
-                            //also implement PblChunk writing.
-
-            //EVENTUALLY:
-            //          1) Allow custom-mips instead of forcing all mips to be downsized samples of the original image (not necessary, but neat)
-
+            //          7) Add "Set Custom Mips" button for new window to allow each mip to be different (use new window in conjunction with #8 here:)
+            //          8) If select cubemap, change "Edit Mips" to "Edit CubeMap", and have it open a new window to set up the 6 faces with images.
         }
         #endregion
 
@@ -93,8 +117,8 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         }
         void ITypeImportWindow.LoadDataIntoView()
         {
-            PopulateView();
             SetWindowTitle(Path.GetFileName(TargetFileName));
+            PopulateView();
 
             //TODO: If it wasn't valid, then we need to show the user that information in some way
             if (_wasImportImageValid)
@@ -104,6 +128,22 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
                     ? PictureBoxSizeMode.StretchImage
                     : PictureBoxSizeMode.CenterImage;
                 pictureBoxTexturePreview.Image = newBMP;
+
+                labelWidth.Text = _importImage.Width.ToString();
+                labelHeight.Text = _importImage.Height.ToString();
+                updownDepth.Value = 1;
+                updownMips.Minimum = 1;
+                updownMips.Maximum = updownMips.Value = ImageUtils.GetMaxNumMips((int)_importImage.Width, (int)_importImage.Height);
+                updownMipBias.Value = 0;
+                comboBoxTexFormat.SelectedIndex = comboBoxTexFormat.Items
+                    .Cast<sTexFormatItem>()
+                    .ToList()
+                    .FindIndex(item => item.TexFormat == eTexFormat.DXT1); //TODO: Only if XBox
+                comboBoxTexType.SelectedIndex = comboBoxTexType.Items
+                    .Cast<sTexTypeItem>()
+                    .ToList()
+                    .FindIndex(item => item.TexType == eTexType.TEXTURE);
+
             }
         }
         #endregion
@@ -119,19 +159,76 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
                 this.Close();
             }
         }
+
+        #endregion
+
+        #region Buttons
+        private void comboBoxTexFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var selTexFormat = GetSelectedTexFormat();
+        }
+        private void comboBoxTexType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //TODO: If the selected Type is a CubeMap, then we need to set the "Import" button to "Setup CubeMap..."
+            //          and open a new window for setting those images.....
+            var selTexType = GetSelectedTexType();
+            if (selTexType == eTexType.CUBEMAP)
+                buttonEditFacesOrMips.Text = "Edit Faces";
+            else
+                buttonEditFacesOrMips.Text = "Edit Mips";
+        }
+        private void buttonImport_Click(object sender, EventArgs e)
+        {
+            ImportTexture(GetSelectedTexType() == eTexType.CUBEMAP);
+        }
         #endregion
 
         #region Methods
+        void ImportTexture(bool asCubeMap)
+        {
+            var selDepth = (int)updownDepth.Value;
+            var selMips = (int)updownMips.Value;
+            var selMipBias = (int)updownMipBias.Value;
+            var selTexType = GetSelectedTexType();
+            var selTexFormat = GetSelectedTexFormat();
+            //RedTextureXBox.cFaceData faceData = createfacedate/getfacedata
+        }
         void SetWindowTitle(string titleExtension)
         {
             this.Text = $"{WindowTitle} - {titleExtension}";
         }
         void PopulateView()
         {
-            //combobox.DataSource = Enum.GetValues(typeof(MyEnum));
+            string[] texFormats = Enum.GetNames(typeof(eTexFormat));
+            foreach (string texFormat in texFormats)
+            {
+                sTexFormatItem item = new sTexFormatItem()
+                {
+                    FriendlyName = texFormat,
+                    TexFormat = (eTexFormat)Enum.Parse(typeof(eTexFormat), texFormat)
+                };
+                comboBoxTexFormat.Items.Add(item);
+            }
+
+            string[] texTypes = Enum.GetNames(typeof(eTexType));
+            foreach (string texType in texTypes)
+            {
+                sTexTypeItem item = new sTexTypeItem()
+                {
+                    FriendlyName = texType,
+                    TexType = (eTexType)Enum.Parse(typeof(eTexType), texType)
+                };
+                comboBoxTexType.Items.Add(item);
+            }
+        }
+        public eTexFormat GetSelectedTexFormat()
+        {
+            return ((sTexFormatItem)comboBoxTexFormat.SelectedItem).TexFormat;
+        }
+        public eTexType GetSelectedTexType()
+        {
+            return ((sTexTypeItem)comboBoxTexType.SelectedItem).TexType;
         }
         #endregion
-
-
     }
 }

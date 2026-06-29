@@ -99,7 +99,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
             int mipWidth = xboxtexture.Width >> mipsPreviewActualIndex;
             int mipHeight = xboxtexture.Height >> mipsPreviewActualIndex;
             SetMipsPreviewIndexLabelText(mipsPreviewActualIndex, xboxtexture.MaxMaps, mipsPreviewActualFaceIndex, xboxtexture.NumFaces, mipWidth, mipHeight);
-            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.xboxtexture.MipsData[mipsPreviewActualFaceIndex][mipsPreviewActualIndex], mipWidth, mipHeight);
+            this.pictureboxMipsPreview.Image = ImageUtils.MipToBMP(this.xboxtexture.FaceData[mipsPreviewActualFaceIndex].MipData[mipsPreviewActualIndex], mipWidth, mipHeight);
             if (mipWidth > this.pictureboxMipsPreview.Size.Width || mipHeight > this.pictureboxMipsPreview.Height)
                 this.pictureboxMipsPreview.SizeMode = PictureBoxSizeMode.StretchImage;
             else
@@ -194,7 +194,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
         }
         private void buttonExportImage_Click(object sender, EventArgs e)
         {
-            if (this.xboxtexture.MipsData.Length == 1)
+            if (this.xboxtexture.FaceData.Length == 1)
             {
                 SaveFileDialog SFD = new SaveFileDialog();
                 SFD.Title = "Export Texture Image...(MIP0)";
@@ -215,7 +215,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                             3 => MagickFormat.Png,
                             _ => MagickFormat.Tga //default
                         };
-                        ExportMip(xOut, this.xboxtexture.MipsData[0][0], xboxtexture.Width, xboxtexture.Height, fmt);
+                        ExportMip(xOut, this.xboxtexture.FaceData[0].MipData[0], xboxtexture.Width, xboxtexture.Height, fmt);
                     }
                 }
             }
@@ -228,11 +228,11 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                 if (FBD.ShowDialog() == DialogResult.OK)
                 {
                     var targetDirectory = FBD.SelectedPath;
-                    for (int face = 0; face < this.xboxtexture.MipsData.Length; face++)
+                    for (int face = 0; face < this.xboxtexture.FaceData.Length; face++)
                     {
                         using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_face{face}.tga", FileMode.OpenOrCreate))
                         {
-                            ExportMip(xOut, this.xboxtexture.MipsData[face][0], this.xboxtexture.Width, this.xboxtexture.Height, MagickFormat.Tga);
+                            ExportMip(xOut, this.xboxtexture.FaceData[face].MipData[0], this.xboxtexture.Width, this.xboxtexture.Height, MagickFormat.Tga);
                         }
                     }
                 }
@@ -274,9 +274,9 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
 
                 var targetDirectory = FBD.SelectedPath;
                 string fileType = (string)option.Tag;
-                for (int face = 0; face < this.xboxtexture.MipsData.Length; face++)
+                for (int face = 0; face < this.xboxtexture.FaceData.Length; face++)
                 {
-                    for (int mip = 0; mip < this.xboxtexture.MipsData[face].Length; mip++)
+                    for (int mip = 0; mip < this.xboxtexture.FaceData[face].MipData[mip].Length; mip++)
                     {
                         int mipWidth = xboxtexture.Width >> mip;
                         int mipHeight = xboxtexture.Height >> mip;
@@ -284,7 +284,7 @@ namespace RetrostrikeDSKUI.Forms.ExportWindows
                             (uint)mipWidth, (uint)mipHeight,
                             ImageMagick.StorageType.Char,        // 8 bits per channel
                             ImageMagick.PixelMapping.RGBA);
-                        var imgf = new ImageMagick.MagickImage(this.xboxtexture.MipsData[face][mip], settings);
+                        var imgf = new ImageMagick.MagickImage(this.xboxtexture.FaceData[face].MipData[mip], settings);
                         using (Stream xOut = File.Open($"{targetDirectory}\\{xboxtexture.TextureName}_face{face}_mip{mip}.{fileType}", FileMode.OpenOrCreate))
                         {
                             switch (option.Tag as string)

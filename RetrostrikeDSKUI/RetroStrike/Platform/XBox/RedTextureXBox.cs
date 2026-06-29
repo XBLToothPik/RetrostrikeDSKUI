@@ -18,15 +18,22 @@ namespace RetroStrike.Platform.XBox
 {
     public class RedTextureXBox
     {
+        public class cFaceData
+        {
+            public cFaceData()
+            {
+
+            }
+            public cFaceData(int numMips)
+            {
+                this.MipData = new byte[numMips][];
+            }
+            public byte[][] MipData;
+        }
         public bool WasCreatedFromPBLChunk { get; private set; }
         public bool WasCreatedFromImage { get; private set; }
         public PblChunk PblTexChunk { get; private set; }
-        public enum eRedTextureType : short
-        {
-            TEXTURE = 1,
-            CUBEMAP = 2,
-            VOLUME = 3
-        }
+
 
         //This is defined in "HandyLib\Source\TexFormat.cpp".
         //The platform independent formats are defined in "HandyLib\Include\TexFormat.h"
@@ -37,15 +44,14 @@ namespace RetroStrike.Platform.XBox
         public short Height;
         public short Depth;
         public short MaxMaps;
-        public eRedTextureType RedTextureType;
+        public eTexType RedTextureType;
         public short TextureFormatVersion;
         public eTexFormat TextureFormat;
         public float MipBias;
 
-
-        public byte[][][] MipsData { get; private set; }
+        public cFaceData[] FaceData { get; private set; }
         public bool MipsEncoded { get; private set; } //TODO:
-        public int NumFaces => RedTextureType == eRedTextureType.CUBEMAP ? 6 : 1;
+        public int NumFaces => RedTextureType == eTexType.CUBEMAP ? 6 : 1;
 
         //public bool MipsProcessed { get; private set; }
         public static RedTextureXBox CreateFromPBLChunk(PblChunk tex_chunk)
@@ -64,7 +70,7 @@ namespace RetroStrike.Platform.XBox
                     texture.Height = reader.ReadInt16();
                     texture.Depth = reader.ReadInt16(); //always 1 (atleast on XBox)
                     texture.MaxMaps = reader.ReadInt16();
-                    texture.RedTextureType = (eRedTextureType)reader.ReadInt16();
+                    texture.RedTextureType = (eTexType)reader.ReadInt16();
                     texture.TextureFormatVersion = reader.ReadInt16(); //expected to be 1
                     texture.TextureFormat = RedEnumUtils.XBoxTexFormatToeTexFormat((eXBoxTextureFormat)reader.ReadInt32()); //TODO: This is platform specific
                     texture.MipBias = reader.ReadSingle();
@@ -73,6 +79,224 @@ namespace RetroStrike.Platform.XBox
             }
             return texture;
         }
+        public static RedTextureXBox CreateFromFaceData(cFaceData[] faceData, string textureName, int imageWidth, int imageHeight, int numMips, int depth, int texFormatVersion, eTexFormat texFormat, eTexType redTexType)
+        {
+            RedTextureXBox toRet = new RedTextureXBox();
+            toRet.TextureName = textureName;
+            toRet.Width = (short)imageWidth;
+            toRet.Height = (short)imageHeight;
+            toRet.MaxMaps = (short)numMips;
+            toRet.Depth = (short)depth;
+            toRet.TextureFormat = texFormat;
+            toRet.RedTextureType = redTexType;
+            toRet.TextureFormatVersion = (short)texFormatVersion;
+            toRet.WasCreatedFromImage = true;
+            toRet.FaceData = faceData;
+            toRet.MipsEncoded = false;
+            return toRet;
+        }
+
+        public bool DecodeMips(out int numMipsDecoded, out string errors)
+        {
+            numMipsDecoded = 0;
+            //We have to do more work to determine if Mips are encoded, like if it was created from a PblChunk but the texture isn't
+            //  compressed or anything at all.
+            //if (!MipsEncoded)
+            //{
+            //    errors = "Mips not encoded";
+            //    return false;
+            //}
+            //TODO: IF the mips are already decoded, return false and error message
+
+            if (WasCreatedFromPBLChunk)
+            {
+                //
+                //  look at pcRedTexture.cpp in the port for the structure
+                //
+                var rawData = GetTextureData();
+                int totalDataSize = rawData.Length;
+                bool isDXT = FormatIsDXT(this.TextureFormat); //TODO: Check platform because DXT is only available for XBox files
+                bool isSwizzled = FormatIsSwizzled(this.TextureFormat);
+                int bpp = FormatBPP(this.TextureFormat);
+                int numMips = (this.MaxMaps > 0) ? this.MaxMaps : 1;
+
+                if (RedTextureType == eTexType.TEXTURE)
+                {
+                    FaceData = new cFaceData[this.NumFaces];
+                    for (int face = 0; face < this.NumFaces; face++)
+                        FaceData[face] = new cFaceData(numMips);
+
+                    if (isDXT)
+                    {
+                        int blockBytes = FormatGetBlockBytes(TextureFormat);
+                        int sourcePos = 0;
+                        for (int face = 0; face < this.NumFaces; face++)
+                        {
+                            for (int mip = 0; mip < numMips; mip++)
+                            {
+                                int mipWidth = Math.Max(1, Width >> mip);
+                                int mipHeight = Math.Max(1, Height >> mip);
+                                int cols = Math.Max(1, (mipWidth + 3) / 4);
+                                int rows = Math.Max(1, (mipHeight + 3) / 4);
+                                int rowSize = cols * blockBytes;
+                                byte[] mipData = new byte[mipWidth * mipHeight * blockBytes];
+
+                                for (int row = 0; row < rows; ++row)
+                                {
+                                    int destPos = row * rowSize;
+                                    Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
+                                }
+                                var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
+                                FaceData[face].MipData[mip] = mipDec;
+                                numMipsDecoded++;
+                                sourcePos += rows * rowSize;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Uncompressed textures also carry a prebuilt authored mip chain in BODY.
+                        // Preserve those exact mip levels instead of regenerating them on PC,
+                        // otherwise alpha-cutout textures and UI atlases shimmer/flicker and
+                        // lose their intended coverage.
+                        int sourcePos = 0;
+                        for (int face = 0; face < this.NumFaces; face++)
+                        {
+                            for (int mip = 0; mip < numMips; ++mip)
+                            {
+                                int mipWidth = Math.Max(1, Width >> mip);
+                                int mipHeight = Math.Max(1, Height >> mip);
+                                int srcRowPitch = mipWidth * bpp;
+                                int mipSize = srcRowPitch * mipHeight;
+                                byte[] mipData = new byte[mipSize];
+                                if (isSwizzled)
+                                {
+                                    byte[] tempMip = new byte[mipSize];
+                                    Array.Copy(rawData, sourcePos, mipData, 0, mipSize);
+                                    UnswizzleTexture(mipData, tempMip, mipWidth, mipHeight, bpp, srcRowPitch);
+                                    mipData = tempMip;
+                                }
+                                else
+                                {
+                                    //Haven't actually tested this part because none of the textures in streamed.dsk meet the criteria (NOT DXT && NOT SWIZZLED), but it should work (hopefully)
+                                    for (int row = 0; row < mipHeight; ++row)
+                                    {
+                                        int destPos = sourcePos + (row * srcRowPitch);
+                                        Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
+                                    }
+                                }
+                                FaceData[face].MipData[mip] = mipData;
+                                numMipsDecoded++;
+                                sourcePos += mipSize;
+                            }
+                        }
+                    }
+                }
+                else if (RedTextureType == eTexType.CUBEMAP)
+                {
+                    //TODO:  Add cubemap.  It's pretty much the same as normal texture but with 6 faces that store the mipchain individually
+                    //though none of the textures in streamed.dsk are CubeMap, so will have to really test it after I create the writer.
+
+
+                }
+            }
+            if (numMipsDecoded > 0)
+            {
+                errors = string.Empty;
+                MipsEncoded = false;
+                return true;
+            }
+            errors = "Texture was not created from a PBLChunk.";
+            return false;
+        }
+
+        public bool EncodeMips(out int numMipsEncoded, out string errors)
+        {
+            numMipsEncoded = 0;
+            errors = string.Empty;
+            for (int face = 0; face < this.FaceData.Length; face++)
+            {
+                for (int mip = 0; mip < this.FaceData[face].MipData.Length; mip++)
+                {
+                    int newMipSize = CalculateBufferSize(this.Width >> mip, this.Height >> mip, this.TextureFormat);
+                    byte[] newMipData = new byte[newMipSize];
+
+                    if (EncodeMip_Xbox(ref newMipData, this.FaceData[face].MipData[mip], this.Width >> mip, this.Height >> mip))
+                    {
+                        numMipsEncoded++;
+                        this.FaceData[face].MipData[mip] = newMipData;
+                    }
+                    else
+                    {
+                        this.FaceData[face].MipData[mip] = null;
+                        errors += $"Encode Error on Mip index{mip}";
+                    }
+                }
+            }
+            if (numMipsEncoded > 0)
+            {
+                errors = string.Empty;
+                return true;
+            }
+            return false;
+        }
+        unsafe bool EncodeMip_Xbox(ref byte[] destination, byte[] source, int width, int height)
+        {
+            if (this.TextureFormat == eTexFormat.DXT1 || this.TextureFormat == eTexFormat.DXT3)
+            {
+                destination = SquishLib.CompressImage(source, width, height, GetSquishFlagFromFormat(this.TextureFormat));
+                return true;
+            }
+            else
+            {
+                bool isSwizzled = FormatIsSwizzled(this.TextureFormat);
+                int bpp = FormatBPP(this.TextureFormat); //dont think i need this in here
+
+                int bufferSize = CalculateBufferSize(width, height, this.TextureFormat);
+                byte[] _mipBuffer = new byte[bufferSize];
+                byte[] usedBuffer;
+                if (TextureFormat != eTexFormat.P8)
+                {
+                    PixelDesc outputPixels = new PixelDesc(this.TextureFormat);
+                    fixed (byte* pDst = _mipBuffer)
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+                            for (int x = 0; x < width; x++)
+                            {
+                                //TODO: 6.28.2026: This is erroring for some dumbass reason, figure it out.
+                                int color = ImageUtils.GetPixel(source, width, x, y, false);
+                                byte* pPixel = pDst + (y * width + x) * bpp;
+
+                                //Non-Xbox maybe?:
+                                //outputPixels.SetRGBA(pPixel,
+                                //    (byte)((color >> 16) & 0xFF),  // R  (ARGB: bits 23-16)
+                                //    (byte)((color >> 8) & 0xFF),  // G  (ARGB: bits 15-8)
+                                //    (byte)(color & 0xFF),  // B  (ARGB: bits 7-0)
+                                //    (byte)((color >> 24) & 0xFF)); // A  (ARGB: bits 31-24)
+
+                                //XBox is using BGRA 
+                                outputPixels.SetRGBA(pPixel,
+                                    (byte)(color & 0xFF),  // B → R slot (Xbox BGRA)
+                                    (byte)((color >> 8) & 0xFF),  // G
+                                    (byte)((color >> 16) & 0xFF),  // R → B slot (Xbox BGRA)
+                                    (byte)((color >> 24) & 0xFF)); // A
+                            }
+                        }
+                    }
+                    usedBuffer = _mipBuffer;
+                }
+                else
+                {
+                    //Get IndexedPixelArray for Pallet (see TextureLib.cpp:780)
+                    throw new NotImplementedException();
+                }
+                SwizzleTexture(usedBuffer, destination, width, height, bpp, width * bpp);
+                return true;
+
+            }
+        }
+
         public PblChunk ToPblChunk(PblFile parentPBLFile)
         {
             //
@@ -105,10 +329,11 @@ namespace RetroStrike.Platform.XBox
             //Next we'll create the Body chunk (before info because Info contains the body's content size)
             writer = new BinaryWriter(bodyChunkStream);
             writer.Write(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR));
-            writer.Write(MipsData.Sum(face => face.Sum(mip => mip.Length)));
-            for (int face = 0; face < MipsData.Length; face++)
-                for (int mip = 0; mip < MipsData[face].Length; mip++)
-                    writer.Write(MipsData[face][mip]);
+            writer.Write(FaceData.Sum(face => face.MipData.Sum(mip => mip.Length)));
+            int totalDataLen = FaceData.Sum(face => face.MipData.Sum(mip => mip.Length));
+            for (int face = 0; face < FaceData.Length; face++)
+                for (int mip = 0; mip < FaceData[face].MipData.Length; mip++)
+                    writer.Write(FaceData[face].MipData[mip]);
 
             PblChunk newBodyChunk = PblChunk.CreateNew(bodyChunkStream, parentPBLFile, BitConverter.ToUInt32(Encoding.ASCII.GetBytes(CHUNK_BODY_ID_STR), 0), PblChunk.CHUNK_HEADER_SIZE, (int)(bodyChunkStream.Length - PblChunk.CHUNK_HEADER_SIZE));
 
@@ -149,6 +374,7 @@ namespace RetroStrike.Platform.XBox
             return newTexChunk;
 
         }
+
         SquishFlags GetSquishFlagFromFormat(eTexFormat format)
         {
             switch (format)
@@ -161,91 +387,7 @@ namespace RetroStrike.Platform.XBox
                     return 0;
             }
         }
-        public bool EncodeMips(out int numMipsEncoded, out string errors)
-        {
-            numMipsEncoded = 0;
-            errors = string.Empty;
-            for (int face = 0; face < this.NumFaces; face++)
-            {
-                for (int mip = 0; mip < this.MaxMaps; mip++)
-                {
-                    int newMipSize = CalculateBufferSize(this.Width >> mip, this.Height >> mip, this.TextureFormat);
-                    byte[] newMipData = new byte[newMipSize];
-                    if (EncodeMip_Xbox(ref newMipData, this.MipsData[face][mip], this.Width >> mip, this.Height >> mip))
-                    {
-                        numMipsEncoded++;
-                        this.MipsData[face][mip] = newMipData;
-                    }
-                    else
-                    {
-                        this.MipsData[mip] = null;
-                        errors += $"Encode Error on Mip index{mip}";
-                    }
-                }
-            }
-            if (numMipsEncoded > 0)
-            {
-                errors = string.Empty;
-                return true;
-            }
-            return false;
-        }
-        unsafe bool EncodeMip_Xbox(ref byte[] destination, byte[] source, int width, int height)
-        {
-            if (this.TextureFormat == eTexFormat.DXT1 || this.TextureFormat == eTexFormat.DXT3)
-            {
-                destination = SquishLib.CompressImage(source, width, height, GetSquishFlagFromFormat(this.TextureFormat));
-                return true;
-            }
-            else
-            {
-                bool isSwizzled = FormatIsSwizzled(this.TextureFormat);
-                int bpp = FormatBPP(this.TextureFormat); //dont think i need this in here
 
-                int bufferSize = CalculateBufferSize(width, height, this.TextureFormat);
-                byte[] _mipBuffer = new byte[bufferSize];
-                byte[] usedBuffer;
-                if (TextureFormat != eTexFormat.P8)
-                {
-                    PixelDesc outputPixels = new PixelDesc(this.TextureFormat);
-                    fixed (byte* pDst = _mipBuffer)
-                    {
-                        for (int y = 0; y < width; y++)
-                        {
-                            for (int x = 0; x < height; x++)
-                            {
-                                int color = ImageUtils.GetPixel(source, width, x, y, false);
-                                byte* pPixel = pDst + (y * width + x) * bpp;
-
-                                //Non-Xbox maybe?:
-                                //outputPixels.SetRGBA(pPixel,
-                                //    (byte)((color >> 16) & 0xFF),  // R  (ARGB: bits 23-16)
-                                //    (byte)((color >> 8) & 0xFF),  // G  (ARGB: bits 15-8)
-                                //    (byte)(color & 0xFF),  // B  (ARGB: bits 7-0)
-                                //    (byte)((color >> 24) & 0xFF)); // A  (ARGB: bits 31-24)
-
-                                //XBox is using BGRA 
-                                outputPixels.SetRGBA(pPixel,
-                                    (byte)(color & 0xFF),  // B → R slot (Xbox BGRA)
-                                    (byte)((color >> 8) & 0xFF),  // G
-                                    (byte)((color >> 16) & 0xFF),  // R → B slot (Xbox BGRA)
-                                    (byte)((color >> 24) & 0xFF)); // A
-                            }
-                        }
-                    }
-                    usedBuffer = _mipBuffer;
-                }
-                else
-                {
-                    //Get IndexedPixelArray for Pallet (see TextureLib.cpp:780)
-                    throw new NotImplementedException();
-                }
-                SwizzleTexture(usedBuffer, destination, width, height, bpp, width * bpp);
-                return true;
-
-            }
-        }
-        //This function can be moved to a more general RedTexture type
         int CalculateBufferSize(int width, int height, eTexFormat texFormat)
         {
             int size;
@@ -267,169 +409,6 @@ namespace RetroStrike.Platform.XBox
             }
 
             return size;
-        }
-        public bool DecodeMips(out int numMipsDecoded, out string errors)
-        {
-            numMipsDecoded = 0;
-            //We have to do more work to determine if Mips are encoded, like if it was created from a PblChunk but the texture isn't
-            //  compressed or anything at all.
-            //if (!MipsEncoded)
-            //{
-            //    errors = "Mips not encoded";
-            //    return false;
-            //}
-            //TODO: IF the mips are already decoded, return false and error message
-
-            if (WasCreatedFromPBLChunk)
-            {
-                //
-                //  look at pcRedTexture.cpp in the port for the structure
-                //
-                var rawData = GetTextureData();
-                int totalDataSize = rawData.Length;
-                bool isDXT = FormatIsDXT(this.TextureFormat); //TODO: Check platform because DXT is only available for XBox files
-                bool isSwizzled = FormatIsSwizzled(this.TextureFormat);
-                int bpp = FormatBPP(this.TextureFormat);
-                int numMips = (this.MaxMaps > 0) ? this.MaxMaps : 1;
-
-                if (RedTextureType == eRedTextureType.TEXTURE)
-                {
-                    MipsData = new byte[this.NumFaces][][];
-                    for (int face = 0; face < this.NumFaces; face++)
-                        MipsData[face] = new byte[numMips][];
-
-                    if (isDXT)
-                    {
-                        int blockBytes = FormatGetBlockBytes(TextureFormat);
-                        int sourcePos = 0;
-                        for (int face = 0; face < this.NumFaces; face++)
-                        {
-                            for (int mip = 0; mip < numMips; mip++)
-                            {
-                                int mipWidth = Math.Max(1, Width >> mip);
-                                int mipHeight = Math.Max(1, Height >> mip);
-                                int cols = Math.Max(1, (mipWidth + 3) / 4);
-                                int rows = Math.Max(1, (mipHeight + 3) / 4);
-                                int rowSize = cols * blockBytes;
-                                byte[] mipData = new byte[mipWidth * mipHeight * blockBytes];
-
-                                for (int row = 0; row < rows; ++row)
-                                {
-                                    int destPos = row * rowSize;
-                                    Array.Copy(rawData, sourcePos + (row * rowSize), mipData, destPos, rowSize);
-                                }
-                                var mipDec = Squish.SquishLib.DecompressImage(mipData, mipWidth, mipHeight, GetSquishFlagFromFormat(TextureFormat));
-                                MipsData[face][mip] = mipDec;
-                                numMipsDecoded++;
-                                sourcePos += rows * rowSize;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Uncompressed textures also carry a prebuilt authored mip chain in BODY.
-                        // Preserve those exact mip levels instead of regenerating them on PC,
-                        // otherwise alpha-cutout textures and UI atlases shimmer/flicker and
-                        // lose their intended coverage.
-                        int sourcePos = 0;
-                        for (int face = 0; face < this.NumFaces; face++)
-                        {
-                            for (int mip = 0; mip < numMips; ++mip)
-                            {
-                                int mipWidth = Math.Max(1, Width >> mip);
-                                int mipHeight = Math.Max(1, Height >> mip);
-                                int srcRowPitch = mipWidth * bpp;
-                                int mipSize = srcRowPitch * mipHeight;
-                                byte[] mipData = new byte[mipSize];
-                                if (isSwizzled)
-                                {
-                                    byte[] tempMip = new byte[mipSize];
-                                    Array.Copy(rawData, sourcePos, mipData, 0, mipSize);
-                                    UnswizzleTexture(mipData, tempMip, mipWidth, mipHeight, bpp, srcRowPitch);
-                                    mipData = tempMip;
-                                }
-                                else
-                                {
-                                    //Haven't actually tested this part because none of the textures in streamed.dsk meet the criteria (NOT DXT && NOT SWIZZLED), but it should work (hopefully)
-                                    for (int row = 0; row < mipHeight; ++row)
-                                    {
-                                        int destPos = sourcePos + (row * srcRowPitch);
-                                        Array.Copy(rawData, sourcePos, mipData, destPos, srcRowPitch);
-                                    }
-                                }
-                                MipsData[face][mip] = mipData;
-                                numMipsDecoded++;
-                                sourcePos += mipSize;
-                            }
-                        }
-                    }
-                }
-                else if (RedTextureType == eRedTextureType.CUBEMAP)
-                {
-                    //TODO:  Add cubemap.  It's pretty much the same as normal texture but with 6 faces that store the mipchain individually
-                    //though none of the textures in streamed.dsk are CubeMap, so will have to really test it after I create the writer.
-
-
-                }
-            }
-            if (numMipsDecoded > 0)
-            {
-                errors = string.Empty;
-                MipsEncoded = false;
-                return true;
-            }
-            errors = "Texture was not created from a PBLChunk.";
-            return false;
-        }
-        public static RedTextureXBox CreateFromImage(Stream xIn, string textureName, ref int numMips, int depth, int texFormatVersion, eTexFormat texFormat, eRedTextureType redTexType)
-        {
-            //TODO: Eventually maybe allow custom Mips instead of just sizing down the given texture.
-            RedTextureXBox toRet = new RedTextureXBox();
-            MagickImage newImg = new MagickImage(xIn);
-            toRet.TextureName = textureName;
-
-            toRet.Width = (short)newImg.Width;
-            toRet.Height = (short)newImg.Height;
-            toRet.Depth = (short)depth;
-            toRet.TextureFormat = texFormat;
-            toRet.RedTextureType = redTexType;
-            toRet.TextureFormatVersion = (short)texFormatVersion;
-            toRet.WasCreatedFromImage = true;
-
-            byte[][][] _tempMipsData = new byte[toRet.NumFaces][][];
-
-            bool _resizeMipArray = false;
-            for (int face = 0; face < toRet.NumFaces; face++)
-            {
-                for (int mip = 0; mip < numMips; mip++)
-                {
-                    int mipWidth = (int)(toRet.Width >> mip);
-                    int mipHeight = (int)(toRet.Height >> mip);
-                    var mipData = newImg.GetPixels().ToByteArray(PixelMapping.RGBA);
-                    _tempMipsData[face][mip] = mipData;
-                    //Resize img to next mip size ahead of the next loop iteration
-                    if (mip + 1 < numMips)
-                    {
-                        uint nextMipWidth = (uint)((toRet.Width) >> mip);
-                        uint nextMipHeight = (uint)((toRet.Height >> mip));
-                        if (nextMipWidth <= 0 || nextMipHeight <= 0)
-                        {
-                            _resizeMipArray = true;
-                            numMips = mip;
-                            break;
-                        }
-                        newImg.Resize((uint)nextMipWidth, (uint)nextMipHeight);
-                    }
-                }
-                if (_resizeMipArray)
-                    Array.Resize(ref _tempMipsData[face], numMips);
-            }
-
-            toRet.MaxMaps = (short)_tempMipsData[0].Length;
-            toRet.MipsData = _tempMipsData;
-            toRet.MipsEncoded = false;
-            return toRet;
-
         }
         static uint MortonExpand(uint v)
         {
