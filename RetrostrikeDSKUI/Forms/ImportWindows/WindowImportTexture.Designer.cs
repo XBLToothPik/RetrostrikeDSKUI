@@ -30,6 +30,7 @@
         {
             buttonImport = new ReaLTaiizor.Controls.PoisonButton();
             panel1 = new Panel();
+            buttonEditFacesOrMips = new ReaLTaiizor.Controls.PoisonButton();
             poisonButton1 = new ReaLTaiizor.Controls.PoisonButton();
             groupBoxImportTexture = new GroupBox();
             labelMipsPreviewHeader = new ReaLTaiizor.Controls.MaterialLabel();
@@ -48,7 +49,6 @@
             labelHeightDesc = new Label();
             labelWidthDesc = new Label();
             pictureBoxTexturePreview = new PictureBox();
-            buttonEditFacesOrMips = new ReaLTaiizor.Controls.PoisonButton();
             panel1.SuspendLayout();
             groupBoxImportTexture.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)updownMipBias).BeginInit();
@@ -74,10 +74,19 @@
             panel1.Controls.Add(poisonButton1);
             panel1.Controls.Add(buttonImport);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(3, 254);
+            panel1.Location = new Point(3, 256);
             panel1.Name = "panel1";
             panel1.Size = new Size(326, 29);
             panel1.TabIndex = 1;
+            // 
+            // buttonEditFacesOrMips
+            // 
+            buttonEditFacesOrMips.Location = new Point(129, 2);
+            buttonEditFacesOrMips.Name = "buttonEditFacesOrMips";
+            buttonEditFacesOrMips.Size = new Size(121, 23);
+            buttonEditFacesOrMips.TabIndex = 3;
+            buttonEditFacesOrMips.Text = "Edit Mips";
+            buttonEditFacesOrMips.UseSelectable = true;
             // 
             // poisonButton1
             // 
@@ -119,7 +128,7 @@
             labelMipsPreviewHeader.Depth = 0;
             labelMipsPreviewHeader.Font = new Font("Roboto", 12F, FontStyle.Regular, GraphicsUnit.Pixel);
             labelMipsPreviewHeader.FontType = ReaLTaiizor.Manager.MaterialSkinManager.FontType.Caption;
-            labelMipsPreviewHeader.Location = new Point(202, 32);
+            labelMipsPreviewHeader.Location = new Point(202, 30);
             labelMipsPreviewHeader.MouseState = ReaLTaiizor.Helper.MaterialDrawHelper.MaterialMouseState.HOVER;
             labelMipsPreviewHeader.Name = "labelMipsPreviewHeader";
             labelMipsPreviewHeader.Size = new Size(112, 19);
@@ -271,38 +280,29 @@
             // pictureBoxTexturePreview
             // 
             pictureBoxTexturePreview.BorderStyle = BorderStyle.FixedSingle;
-            pictureBoxTexturePreview.Location = new Point(202, 53);
+            pictureBoxTexturePreview.Location = new Point(202, 51);
             pictureBoxTexturePreview.Name = "pictureBoxTexturePreview";
             pictureBoxTexturePreview.Size = new Size(112, 112);
             pictureBoxTexturePreview.TabIndex = 0;
             pictureBoxTexturePreview.TabStop = false;
             // 
-            // buttonEditFacesOrMips
-            // 
-            buttonEditFacesOrMips.Location = new Point(129, 2);
-            buttonEditFacesOrMips.Name = "buttonEditFacesOrMips";
-            buttonEditFacesOrMips.Size = new Size(121, 23);
-            buttonEditFacesOrMips.TabIndex = 3;
-            buttonEditFacesOrMips.Text = "Edit Mips";
-            buttonEditFacesOrMips.UseSelectable = true;
-            // 
             // WindowImportTexture
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(332, 286);
+            ClientSize = new Size(332, 288);
             Controls.Add(groupBoxImportTexture);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
             FormStyle = ReaLTaiizor.Enum.Material.FormStyles.ActionBar_None;
             MaximizeBox = false;
-            MaximumSize = new Size(332, 286);
+            MaximumSize = new Size(332, 288);
             MinimizeBox = false;
             Name = "WindowImportTexture";
             Padding = new Padding(3, 24, 3, 3);
             Sizable = false;
             StartPosition = FormStartPosition.CenterParent;
-            Text = "WindowImportTexture";
+            Text = "Import & Customize Texture";
             TopMost = true;
             Shown += WindowImportTexture_Shown;
             panel1.ResumeLayout(false);

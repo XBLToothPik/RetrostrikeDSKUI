@@ -28,6 +28,10 @@ namespace RetroStrike.Platform.XBox
             {
                 this.MipData = new byte[numMips][];
             }
+            public cFaceData(byte[][] mipData)
+            {
+                this.MipData = mipData;
+            }
             public byte[][] MipData;
         }
         public bool WasCreatedFromPBLChunk { get; private set; }
@@ -264,7 +268,6 @@ namespace RetroStrike.Platform.XBox
                         {
                             for (int x = 0; x < width; x++)
                             {
-                                //TODO: 6.28.2026: This is erroring for some dumbass reason, figure it out.
                                 int color = ImageUtils.GetPixel(source, width, x, y, false);
                                 byte* pPixel = pDst + (y * width + x) * bpp;
 

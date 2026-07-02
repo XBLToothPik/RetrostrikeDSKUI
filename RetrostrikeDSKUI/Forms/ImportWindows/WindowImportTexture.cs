@@ -13,6 +13,7 @@ using System.Text;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 #pragma warning disable CS8605 // Unboxing a possibly null value.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
 using RetroStrike.Image;
 
@@ -49,9 +50,11 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         #region Fields
         bool _importSuccess;
         Dictionary<string, object> _customData;
-        MagickImage _importImage;
-        Stream _importImageStream;
+        MagickImage[][] _importedImages;
+
         bool _wasImportImageValid = false;
+        RedTextureXBox.cFaceData[] _faceData;
+        bool _facesEdited = false;
         #endregion
 
         #region Properties
@@ -69,6 +72,7 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         {
             InitializeComponent();
             _customData = new Dictionary<string, object>();
+
             //TODO: If imported successfully, need to set the CustomData on the RFI (check DSKFile.ProcessNewRFIAsTexture)
             //TODO: Next, import the texture file (PNG, TGA..etc..) and then create the RFI entry for it, set it's CustomData, set it to Process, add to the DSK
             //tex_maxmaps
@@ -94,23 +98,36 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         #region Interface Methods
         void ITypeImportWindow.LoadData()
         {
-            //TODO: When you click cancel, it should close the ImageStream
-
+            Stream imgStream = null;
             try
             {
-                _importImageStream = File.Open(this.TargetFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                _importImage = new MagickImage(_importImageStream);
+                MagickImage initialImage = new MagickImage(imgStream = File.Open(this.TargetFileName, FileMode.Open, FileAccess.Read, FileShare.Read));
+                int maxNumMips = ImageUtils.GetMaxNumMips((int)initialImage.Width, (int)initialImage.Height);
+
+                //when we first load, we're only loading 1 image so we can load it and dispose of the stream
+                //instead of assigning the face count to 6 here, we might should assign it to 1 and then when the user selects cubemap, we can then Array.Resize
+                //      it to 6 and then load the other images for the other faces.
+                //NOTE!!!: When the user changes from CubeMap to Texture (or other), and there are edited images in the other faces, we need to alert
+                //              the user that those images will be lost if they change the type, and ask them if they want to continue or cancel the change.    
+                _importedImages = new MagickImage[6][];
+                _importedImages[0] = new MagickImage[maxNumMips];
+
+                _importedImages[0][0] = initialImage;
                 _wasImportImageValid = true;
-                //We don't want to close the stream here because if it's imported then the DSKFile will use that stream.  If cancel is selected however, then we close it.
+                imgStream.Close();
+                imgStream.Dispose();
+
             }
             catch (Exception ex)
             {
-                if (!(ex is FileNotFoundException)
+                
+                if (imgStream != null && 
+                    !(ex is FileNotFoundException)
                     && !(ex is IOException)
                     && !(ex is UnauthorizedAccessException)
                     && !(ex is DirectoryNotFoundException))
                 {
-                    _importImageStream.Close();
+                    imgStream.Close();
                 }
                 _wasImportImageValid = false;
             }
@@ -123,17 +140,17 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
             //TODO: If it wasn't valid, then we need to show the user that information in some way
             if (_wasImportImageValid)
             {
-                var newBMP = this._importImage.ToBitmap();
+                var newBMP = this._importedImages[0][0].ToBitmap();
                 pictureBoxTexturePreview.SizeMode = (newBMP.Width > pictureBoxTexturePreview.Width || newBMP.Height > pictureBoxTexturePreview.Height)
                     ? PictureBoxSizeMode.StretchImage
                     : PictureBoxSizeMode.CenterImage;
                 pictureBoxTexturePreview.Image = newBMP;
 
-                labelWidth.Text = _importImage.Width.ToString();
-                labelHeight.Text = _importImage.Height.ToString();
+                labelWidth.Text = this._importedImages[0][0].Width.ToString();
+                labelHeight.Text = this._importedImages[0][0].Height.ToString();
                 updownDepth.Value = 1;
                 updownMips.Minimum = 1;
-                updownMips.Maximum = updownMips.Value = ImageUtils.GetMaxNumMips((int)_importImage.Width, (int)_importImage.Height);
+                updownMips.Maximum = updownMips.Value = ImageUtils.GetMaxNumMips((int)this._importedImages[0][0].Width, (int)this._importedImages[0][0].Height);
                 updownMipBias.Value = 0;
                 comboBoxTexFormat.SelectedIndex = comboBoxTexFormat.Items
                     .Cast<sTexFormatItem>()
@@ -191,8 +208,90 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
             var selMipBias = (int)updownMipBias.Value;
             var selTexType = GetSelectedTexType();
             var selTexFormat = GetSelectedTexFormat();
+            CreateFaceDataFromImportedImages(asCubeMap);
+            //TODO: Next make a function that creates the face data (so when EditMips/Faces window is returned from, we can get the images from it and create the faces).
+            //          Doing this should cover both a normal single image import, and custom faces/mips.
             //RedTextureXBox.cFaceData faceData = createfacedate/getfacedata
         }
+        void CreateFaceDataFromImportedImages(bool asCubeMap)
+        {
+            var numMips = (int)updownMips.Value;
+            var numFaces = asCubeMap ? 6 : 1;
+
+            // Face 0 / mip 0 is the canonical base image: it defines the dimensions,
+            // and any null (missing) mip on any face is derived from it by resizing.
+            var baseImage = _importedImages[0][0];
+            var imgWidth = baseImage.Width;
+            var imgHeight = baseImage.Height;
+
+            _faceData = new RedTextureXBox.cFaceData[numFaces];
+
+            // Missing mips are ALWAYS generated from face0/mip0, so a derived mip is
+            // identical no matter which face requested it - compute once, share the
+            // byte[] reference across faces. Only useful when there's more than one
+            // face; with a single face each mip is visited exactly once.
+            byte[][] mipCache = numFaces > 1 ? new byte[numMips][] : null;
+
+            MagickImage working = null; // scratch image for deriving missing mips
+            try
+            {
+                for (int face = 0; face < numFaces; face++)
+                {
+                    var curFace = _faceData[face] = new RedTextureXBox.cFaceData();
+                    curFace.MipData = new byte[numMips][];
+
+                    // Source mips for this face; a face with no imported images at all
+                    // just derives everything from face0/mip0.
+                    var faceImages = (face < _importedImages.Length) ? _importedImages[face] : null;
+
+                    for (int mip = 0; mip < numMips; mip++)
+                    {
+                        var provided = (faceImages != null && mip < faceImages.Length)
+                            ? faceImages[mip]
+                            : null;
+
+                        if (provided != null)
+                        {
+                            //the user supplied this face/mip explicitly - use it as-is.
+                            curFace.MipData[mip] = provided.ToByteArray(MagickFormat.Rgba);
+                        }
+                        else if (mipCache != null && mipCache[mip] != null)
+                        {
+                            //tlready derived this mip level from face0/mip0 earlier.
+                            curFace.MipData[mip] = mipCache[mip];
+                        }
+                        else
+                        {
+                            // Missing mip: derive it from face0/mip0 by resizing.
+                            var w = Math.Max(1, imgWidth >> mip);
+                            var h = Math.Max(1, imgHeight >> mip);
+
+                            // Re-clone from the base if we have no scratch image yet, or
+                            // if the scratch image has already been shrunk below the
+                            // target size (never upscale - always resize down from base).
+                            if (working == null || working.Width < w || working.Height < h)
+                            {
+                                working?.Dispose();
+                                working = (MagickImage)baseImage.Clone();
+                            }
+                            if (working.Width != w || working.Height != h)
+                                working.Resize(w, h);
+
+                            var derived = working.ToByteArray(MagickFormat.Rgba);
+                            if (mipCache != null)
+                                mipCache[mip] = derived;
+                            curFace.MipData[mip] = derived;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                working?.Dispose();
+            }
+        }
+
+
         void SetWindowTitle(string titleExtension)
         {
             this.Text = $"{WindowTitle} - {titleExtension}";

@@ -292,19 +292,13 @@ namespace RetroStrike.VirtualDisk
             PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
             tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
 
+            targetRFI.NewIncomingFileStream = newPblFile.MainPBLFileStream;
+            targetRFI.ProcessAsFileType = false;
 
-            //Reset the processing stage.  The new incoming stream is that of the processed stream and so if the DSK were saved with a new processed item, and then saved again,
-            //it wouldn't try processing the stream again (it couldn't because the original stream was closed and replaced with the processsed one), so it should
-            //just copy from the NewIncomingFileStream in that case, which is good.
             //TODO:
             //      1) Add "IsProcessing" to the RFI and update it here (or in the switch)
             //      2) Add "ProcessSuccess" bool to the RFI and update it here with a try statement (or in the switch)
             //      3) Add "ProcessError" if there is an error in the try statement as suggested above
-            
-            //TODO: Move this to the switch statement as this should be applicable for all processed items:
-            targetRFI.NewIncomingFileStream.Close();
-            targetRFI.NewIncomingFileStream = newPblFile.MainPBLFileStream;
-            targetRFI.ProcessAsFileType = false;
         }
         #endregion
 
