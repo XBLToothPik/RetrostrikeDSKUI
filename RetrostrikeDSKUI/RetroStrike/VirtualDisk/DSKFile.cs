@@ -50,7 +50,6 @@ namespace RetroStrike.VirtualDisk
             public RFI(DSKFile ownerDSKFile)
             {
                 this.OwnerDSKFile = ownerDSKFile;
-                this.CustomData = new Dictionary<string, object>();
             }
 
             public uint NameHashOriginal;
@@ -60,8 +59,6 @@ namespace RetroStrike.VirtualDisk
 
 
             public uint NameHashNew;
-            public uint FileTypeNew;
-
 
 
             public bool IsBeingReplaced;
@@ -91,7 +88,18 @@ namespace RetroStrike.VirtualDisk
             public int GetActiveFileSize()
             {
                 if (IsNewImportedFileOrReplaced)
+                {
+                    if (ProcessAsFileType)
+                    {
+                        //TODO: 
+                        //We don't know the size yet, it will be determined by the processor
+                        //  though we could theoretically calculate it beforehand,
+                        //  possibly by RFI.PreCalcFullFileSize?.Invoke or something like that...
+                        //  note: for textures this would be pretty easy i think
+                        return -1; 
+                    }
                     return (int)NewIncomingFileStream.Length;
+                }
                 return FileSizeOriginal;
             }
         }
@@ -262,6 +270,8 @@ namespace RetroStrike.VirtualDisk
                 case "texture":
                     ProcessNewRFIAsTexture(targetRFI);
                     break;
+                default:
+                    throw new NotImplementedException();
             }
         }
         void ProcessNewRFIAsTexture(RFI targetRFI)
@@ -284,13 +294,13 @@ namespace RetroStrike.VirtualDisk
             bool encodeSuccess = texture.EncodeMips(out numMips, out encodeErrors);
             if (!encodeSuccess)
             {
-
+                //TODO: Eventually create an error handler class that can relay any errors back to the user
             }
             targetRFI.CustomData["tex_maxmaps"] = numMips;
             
             PblFile newPblFile = PblFile.CreateFromRootChunk(this, PblChunk.CreateBlankMemoryChunk(Hashing.MakeFNV1A("ucfb")));
             PblChunk tex_Chunk = texture.ToPblChunk(newPblFile);
-            tex_Chunk.WriteChunkTo(newPblFile.RootChunk);
+            tex_Chunk.WriteChunkTo(newPblFile.RootChunk, true);
 
             targetRFI.NewIncomingFileStream = newPblFile.MainPBLFileStream;
             targetRFI.ProcessAsFileType = false;
@@ -419,6 +429,20 @@ namespace RetroStrike.VirtualDisk
             }
             newFile = null;
             return false;
+        }
+        public bool AddFile(RFI newRFI, out string failReason)
+        {
+            if (CanAddFile(newRFI.GetActiveTypeHash(), newRFI.NewIncomingFileName, out failReason))
+            {
+                if (!Files.ContainsKey(newRFI.GetActiveTypeHash()))
+                    Files.Add(newRFI.GetActiveTypeHash(), new List<RFI>(1));
+                Files[newRFI.GetActiveTypeHash()].Add(newRFI);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         public bool AddFile(string typeName, Stream xin, string fileName, out RFI newRFI, out string addFailReason)
         {

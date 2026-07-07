@@ -32,7 +32,7 @@ namespace RetrostrikeDSKUI
         #region Fields
         public const string MainWindowTitle = "RetroStrike DSK Editor";
         string currentDSKFileName = string.Empty;
-        MaterialListView mainListView;
+        System.Windows.Forms.ListView mainListView;
         Color ImportedColor = Color.FromArgb(200, 240, 200);  // light green
         Color ReplacedColor = Color.FromArgb(200, 225, 245);  // light blue
         Color RemovedColor = Color.FromArgb(245, 205, 205);  // light red
@@ -520,11 +520,13 @@ namespace RetrostrikeDSKUI
                 {
                     var targetItem = targettedFiles[e.ItemIndex];
                     var item = new ListViewItem();
-
+                    var activeFileSize = targetItem.GetActiveFileSize();
+                   
                     item.Text = RetroStrikeGlobals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
                     item.SubItems.Add(RetroStrikeGlobals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
-                    item.SubItems.Add($"{targetItem.GetActiveFileSize()}");
-
+                    item.SubItems.Add(activeFileSize == -1 ? "TBD" : $"{activeFileSize}");
+                    item.Font = new Font("Segoe UI", 9f);
+                    
                     e.Item = item;
                     e.Item.BackColor =
                         targetItem.IsBeingReplaced
@@ -534,6 +536,7 @@ namespace RetrostrikeDSKUI
                         : targetItem.IsBeingRemoved
                         ? RemovedColor
                         : SystemColors.Window;
+
                 }
             }
         }
@@ -548,7 +551,7 @@ namespace RetrostrikeDSKUI
             SendMessage(mainListView.Handle, WM_SETREDRAW, false, 0);
             try
             {
-                int width = mainListView.ClientSize.Width - SystemInformation.VerticalScrollBarWidth;
+                int width = mainListView.ClientSize.Width - SystemInformation.VerticalScrollBarWidth + 12;
                 int used = 0;
                 for (int i = 0; i < mainListView.Columns.Count - 1; i++)
                 {
@@ -576,14 +579,15 @@ namespace RetrostrikeDSKUI
         void CreateMainListView()
         {
             //Create the listview
-            mainListView = new ReaLTaiizor.Controls.MaterialListView();
+            mainListView = new System.Windows.Forms.ListView();
             mainListView.Name = "MainListView";
             mainListView.Dock = DockStyle.Fill;
             mainListView.VirtualMode = true;
             mainListView.FullRowSelect = true;
             mainListView.MultiSelect = false;
             mainListView.View = View.Details;
-
+            mainListView.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
+            
             mainListView.Alignment = ListViewAlignment.Left;
             mainListView.ContextMenuStrip = FileOptionsContextMenu;
             mainListView.RetrieveVirtualItem += MainListView_RetrieveVirtualItem;
