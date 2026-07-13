@@ -180,7 +180,7 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
 
             if (!string.IsNullOrEmpty(addFileFailReason))
                 MessageBox.Show(addFileFailReason, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            
+
         }
         private void button_Cancel_Click(object sender, EventArgs e)
         {
@@ -228,5 +228,9 @@ namespace RetrostrikeDSKUI.Forms.ImportWindows
         }
         #endregion
 
+        private void button_SelectImportFile_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

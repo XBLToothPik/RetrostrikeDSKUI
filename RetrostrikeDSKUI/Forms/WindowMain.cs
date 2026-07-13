@@ -521,13 +521,17 @@ namespace RetrostrikeDSKUI
                     var targetItem = targettedFiles[e.ItemIndex];
                     var item = new ListViewItem();
                     var activeFileSize = targetItem.GetActiveFileSize();
-                   
+
+                    item.Font = new Font("Segoe UI", 9f);
                     item.Text = RetroStrikeGlobals.HashResolver.ResolveHash(targettedFiles[e.ItemIndex].GetActiveNameHash(), HashNameResolver.eHashTypeSelector.All);
                     item.SubItems.Add(RetroStrikeGlobals.HashResolver.ResolveHash(targetItem.GetActiveTypeHash(), HashNameResolver.eHashTypeSelector.FileTypes));
                     item.SubItems.Add(activeFileSize == -1 ? "TBD" : $"{activeFileSize}");
-                    item.Font = new Font("Segoe UI", 9f);
                     
                     e.Item = item;
+                    var alternateColor = (e.ItemIndex % 2 == 0)
+                                         ? Color.White
+                                         : Color.FromArgb(245, 245, 245); // light grey
+
                     e.Item.BackColor =
                         targetItem.IsBeingReplaced
                         ? ReplacedColor
@@ -535,7 +539,7 @@ namespace RetrostrikeDSKUI
                         ? ImportedColor
                         : targetItem.IsBeingRemoved
                         ? RemovedColor
-                        : SystemColors.Window;
+                        : alternateColor;
 
                 }
             }

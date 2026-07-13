@@ -276,10 +276,6 @@ namespace RetroStrike.VirtualDisk
         }
         void ProcessNewRFIAsTexture(RFI targetRFI)
         {
-            //The targetRFI will be a new imported file.  So in this case it should be an image (png, tga..etc..)
-            //Though we should really do most of this in the RedTextureXBox (or other platform) 
-            //      !! dont forget about doing mips
-
             int numMips = (int)targetRFI.CustomData["tex_maxmaps"];
             int depth = (int)targetRFI.CustomData["tex_depth"];
             int version = (int)targetRFI.CustomData["tex_formatversion"];

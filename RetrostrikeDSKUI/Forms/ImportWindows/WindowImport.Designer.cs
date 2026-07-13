@@ -123,6 +123,7 @@
             button_SelectImportFile.TabIndex = 1;
             button_SelectImportFile.Text = "...";
             button_SelectImportFile.UseVisualStyleBackColor = true;
+            button_SelectImportFile.Click += button_SelectImportFile_Click;
             // 
             // textbox_ImportFileName
             // 
